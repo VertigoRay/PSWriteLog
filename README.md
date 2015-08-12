@@ -27,4 +27,4 @@ if (-not (Get-Command 'Write-Log' -ErrorAction Ignore)) {
 }
 ```
 
-Works fine for me with RemoteSigned execution policy.  If you run into issues where the downloaded file is blocked, try use the `Unblock-File` command.
+Works fine for me with RemoteSigned execution policy.  If you run into issues where the downloaded file is blocked, try using the `Unblock-File` command.
