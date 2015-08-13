@@ -32,6 +32,10 @@ Return the message that was passed to the function
 Specifies that the message is a debug message. Debug messages only get logged if -LogDebugMessage is set to $true.
 .PARAMETER LogDebugMessage
 Debug messages only get logged if this parameter is set to $true in the config XML file.
+.PARAMETER LogDateFormat
+Date format, as expected by `Get-Date -Format`. Default: 'yyyy-MM-dd'
+.PARAMETER LogTimeFormat
+Time format, as expected by `Get-Date -Format`. Default: 'HH:mm:ss.fff'
 .EXAMPLE
 Write-Log -Message "Installing patch MS15-031" -Source 'Add-Patch' -LogType 'CMTrace'
 .EXAMPLE
@@ -81,7 +85,11 @@ Function Write-Log {
         [Parameter(Mandatory=$false,Position=11)]
         [switch]$DebugMessage = $false,
         [Parameter(Mandatory=$false,Position=12)]
-        [boolean]$LogDebugMessage = $false
+        [boolean]$LogDebugMessage = $false,
+        [Parameter(Mandatory=$false,Position=13)]
+        [string]$LogDateFormat = 'yyyy-MM-dd',
+        [Parameter(Mandatory=$false,Position=14)]
+        [string]$LogTimeFormat = 'HH:mm:ss.fff'
     )
     
     Begin {
@@ -111,8 +119,8 @@ Function Write-Log {
         }
 
         # Initialize the date/time variables
-        [string]$LogTime = (Get-Date -Format HH:mm:ss.fff).ToString()
-        [string]$LogDate = (Get-Date -Format MM-dd-yyyy).ToString()
+        [string]$LogTime = (Get-Date -Format $LogTimeFormat).ToString()
+        [string]$LogDate = (Get-Date -Format $LogDateFormat).ToString()
         If (-not (Test-Path -Path 'variable:LogTimeZoneBias')) {
             [int32]$script:LogTimeZoneBias = [System.TimeZone]::CurrentTimeZone.GetUtcOffset([datetime]::Now).TotalMinutes
         }
