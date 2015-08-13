@@ -15,7 +15,7 @@ I import this into my scripts with the following:
 ```posh
 if (-not (Get-Command 'Write-Log' -ErrorAction Ignore)) {
     $write_log_version = '1.1'
-    $write_log_url = 'https://github.com/VertigoRay/Write-Log/archive/v{0}.zip' -f $write_log_version
+    $write_log_url = 'https://github.com/UNT-CAS-ITS/Write-Log/archive/v{0}.zip' -f $write_log_version
 
     if (-not (Test-Path ('.\Write-Log-{0}\Write-Log.ps1' -f $write_log_version) -ErrorAction Ignore)) {
         Invoke-WebRequest ($write_log_url) -OutFile 'Write-Log.zip' -UseBasicParsing
