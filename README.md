@@ -10,7 +10,7 @@ Can also specify parameters via `${env:Write-Log}` variable. Store variables in 
 
 # Usage
 
-I import this into my scripts with [REQUIREMENTS.json](/UNT-CAS-ITS/REQUIREMENTS.json):
+I import this into my scripts with [REQUIREMENTS.json](//github.com/UNT-CAS-ITS/REQUIREMENTS.json):
 
 ```json
 [
