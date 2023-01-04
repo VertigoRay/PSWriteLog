@@ -1,4 +1,4 @@
-# Documentation: https://github.com/VertigoRay/Write-Log/wiki/WriteLog-Tests
+﻿# Documentation: https://git.cas.unt.edu/posh/write-log/wikis/WriteLog-Tests
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
@@ -36,7 +36,7 @@ Describe 'Write-Log with parameters' {
         BeforeEach {
             Write-Log $Message
         }
-        
+
         It "Creates ${DefaultLog}" {
             $DefaultLog | Should Exist
         }
@@ -50,7 +50,7 @@ Describe 'Write-Log with parameters' {
         BeforeEach {
             Write-Log $Message -LogType Legacy
         }
-        
+
         It "Creates ${DefaultLog}" {
             $DefaultLog | Should Exist
         }
@@ -166,11 +166,11 @@ Describe 'Write-Log with parameters' {
 
     Context 'Write-Log $Message -LogFileDirectory $env:Temp' {
         $LogFile = "${env:Temp}\$(Split-Path $DefaultLog -Leaf)"
-        
+
         BeforeEach {
             Write-Log $Message -LogFileDirectory $env:Temp
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -186,7 +186,7 @@ Describe 'Write-Log with parameters' {
         BeforeEach {
             Write-Log $Message -LogFileDirectory $env:Temp -LogType Legacy
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -202,7 +202,7 @@ Describe 'Write-Log with parameters' {
         BeforeEach {
             Write-Log $Message -LogFileDirectory $env:Temp -LogFileName Test.log
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -218,7 +218,7 @@ Describe 'Write-Log with parameters' {
         BeforeEach {
             Write-Log $Message -LogFileDirectory $env:Temp -LogFileName Test.log -LogType Legacy
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -237,7 +237,7 @@ Describe 'Write-Log with parameters' {
                 Write-Log $Message -LogFileDirectory $env:Temp -LogFileName Test.log -MaxLogFileSizeMB 0
             } Until (([System.IO.FileInfo](Get-ChildItem -Path $LogFile -ErrorAction 'Stop')).Length -gt .1MB)
         }
-        
+
         It "Creates ${LogFileArchived}" {
             Write-Log $Message -LogFileDirectory $env:Temp -LogFileName Test.log -MaxLogFileSizeMB .1
             $LogFileArchived | Should Exist
@@ -330,7 +330,7 @@ Describe 'Write-Log with $env:Write-Log' {
         BeforeEach {
             Write-Log $Message
         }
-        
+
         It "Creates ${DefaultLog}" {
             $DefaultLog | Should Exist
         }
@@ -345,7 +345,7 @@ Describe 'Write-Log with $env:Write-Log' {
             ${env:Write-Log} = ConvertTo-Json @{'LogType'='Legacy'} -Compress
             Write-Log $Message
         }
-        
+
         It "Creates ${DefaultLog}" {
             $DefaultLog | Should Exist
         }
@@ -471,12 +471,12 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -LogFileDirectory $env:Temp' {
         $LogFile = "${env:Temp}\$(Split-Path $DefaultLog -Leaf)"
-        
+
         BeforeEach {
             ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$env:Temp} -Compress
             Write-Log $Message
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -493,7 +493,7 @@ Describe 'Write-Log with $env:Write-Log' {
             ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$env:Temp; 'LogType'='Legacy'} -Compress
             Write-Log $Message
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -510,7 +510,7 @@ Describe 'Write-Log with $env:Write-Log' {
             ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$env:Temp; 'LogFileName'='Test.log'} -Compress
             Write-Log $Message
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -527,7 +527,7 @@ Describe 'Write-Log with $env:Write-Log' {
             ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$env:Temp; 'LogFileName'='Test.log'; 'LogType'='Legacy'} -Compress
             Write-Log $Message
         }
-        
+
         It "Creates ${LogFile}" {
             $LogFile | Should Exist
         }
@@ -546,7 +546,7 @@ Describe 'Write-Log with $env:Write-Log' {
                 Write-Log $Message -LogFileDirectory $env:Temp -LogFileName Test.log -MaxLogFileSizeMB 0
             } Until (([System.IO.FileInfo](Get-ChildItem -Path $LogFile -ErrorAction 'Stop')).Length -gt .1MB)
         }
-        
+
         It "Creates ${LogFileArchived}" {
             ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$env:Temp; 'LogFileName'='Test.log'; 'MaxLogFileSizeMB'=.1} -Compress
             Write-Log $Message
