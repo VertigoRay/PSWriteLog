@@ -1,11 +1,14 @@
-function global:Write-Warning {
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=113430', RemotingCapability='None')]
+function global:Write-Output {
+    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=113427', RemotingCapability='None')]
     param(
-        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
-        [Alias('Msg')]
-        [AllowEmptyString()]
-        [string]
-        ${Message})
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
+        [AllowNull()]
+        [AllowEmptyCollection()]
+        [psobject[]]
+        ${InputObject},
+
+        [switch]
+        ${NoEnumerate})
 
     begin
     {
@@ -15,8 +18,8 @@ function global:Write-Warning {
             $invo_file = Split-Path $MyInvocation.InvocationName -Leaf
         }
 
-        $write_log = @{
-            'Severity' = 'Warning';
+        $writeLog = @{
+            'Severity' = 'Output'
             'Component' = (& { $PSCallStack = (Get-PSCallStack)[2]; "$($PSCallStack.Command) $($PSCallStack.Arguments)" });
             'Source' = "${invo_file}:$($MyInvocation.ScriptLineNumber)";
         }
@@ -27,7 +30,7 @@ function global:Write-Warning {
             {
                 $PSBoundParameters['OutBuffer'] = 1
             }
-            $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Warning', [System.Management.Automation.CommandTypes]::Cmdlet)
+            $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Output', [System.Management.Automation.CommandTypes]::Cmdlet)
             $scriptCmd = {& $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
@@ -38,8 +41,8 @@ function global:Write-Warning {
 
     process
     {
-        if ((Get-Command 'Write-Log' -ErrorAction 'Ignore') -and ($WarningPreference -ine 'SilentlyContinue')) {
-            Write-Log @write_log -Message $Message
+        if ((Get-Command 'Write-Log' -ErrorAction 'Ignore') -and ($VerbosePreference -ine 'SilentlyContinue')) {
+            Write-Log @writeLog -Message ($InputObject | Out-String)
         }
 
         try {
@@ -59,7 +62,7 @@ function global:Write-Warning {
     }
     <#
 
-    .ForwardHelpTargetName Microsoft.PowerShell.Utility\Write-Warning
+    .ForwardHelpTargetName Microsoft.PowerShell.Utility\Write-Output
     .ForwardHelpCategory Cmdlet
 
     #>

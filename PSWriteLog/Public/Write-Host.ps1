@@ -20,14 +20,14 @@ function global:Write-Host {
     begin
     {
         if ($MyInvocation.PSCommandPath) {
-            $invo_file = Split-Path $MyInvocation.PSCommandPath -Leaf
+            $invoFile = Split-Path $MyInvocation.PSCommandPath -Leaf
         } else {
-            $invo_file = Split-Path $MyInvocation.InvocationName -Leaf
+            $invoFile = Split-Path $MyInvocation.InvocationName -Leaf
         }
 
-        $write_log = @{
+        $writeLog = @{
             'Component' = (& { $PSCallStack = (Get-PSCallStack)[2]; "$($PSCallStack.Command) $($PSCallStack.Arguments)" });
-            'Source' = "${invo_file}:$($MyInvocation.ScriptLineNumber)";
+            'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
         try {
@@ -48,7 +48,7 @@ function global:Write-Host {
     process
     {
         if (Get-Command 'Write-Log' -ErrorAction 'Ignore') {
-            Write-Log @write_log -Message $Object
+            Write-Log @writeLog -Message $Object
         }
 
         try {

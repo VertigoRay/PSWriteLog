@@ -33,8 +33,8 @@ function global:Write-Progress {
         ${Completed},
 
         [int]
-        ${SourceId}
-        ,
+        ${SourceId},
+
         [ValidateScript({[enum]::GetValues([System.ConsoleColor]) -icontains $_})]
         [string]
         ${WriteHostColor}
@@ -43,15 +43,15 @@ function global:Write-Progress {
     begin
     {
         if ($MyInvocation.PSCommandPath) {
-            $invo_file = Split-Path $MyInvocation.PSCommandPath -Leaf
+            $invoFile = Split-Path $MyInvocation.PSCommandPath -Leaf
         } else {
-            $invo_file = Split-Path $MyInvocation.InvocationName -Leaf
+            $invoFile = Split-Path $MyInvocation.InvocationName -Leaf
         }
 
-        $write_log = @{
+        $writeLog = @{
             'Severity' = 'Progress'
             'Component' = (& { $PSCallStack = (Get-PSCallStack)[2]; "$($PSCallStack.Command) $($PSCallStack.Arguments)" });
-            'Source' = "${invo_file}:$($MyInvocation.ScriptLineNumber)";
+            'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
         try {
@@ -84,7 +84,7 @@ function global:Write-Progress {
         $Message.Add($CurrentOperation) | Out-Null
 
         if (Get-Command 'Write-Log' -ErrorAction 'Ignore') {
-            Write-Log @write_log -Message ($Message -join ' ')
+            Write-Log @writeLog -Message ($Message -join ' ')
         }
 
         if ($WriteHostColor) {

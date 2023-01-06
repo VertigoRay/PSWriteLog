@@ -1,0 +1,140 @@
+image: WMF 5
+
+# Skip on updates to the readme.
+# We can force this by adding [skip ci] or [ci skip] anywhere in commit message
+skip_commits:
+  message: /update(?:|d|s) readme\..*/
+
+environment:
+  GITHUB_PERSONAL_ACCESS_TOKEN:
+    secure: NegQQNxnvn93My5EI3I24WexZixb/9kXU+PpSaVYLoUHkqISEMZLkpwLjOHtqWsa
+
+init:
+  - ps: |
+      if ($env:APPVEYOR_REPO_TAG -eq 'true' -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith('v')) {
+        Add-AppveyorMessage -Message ('Git tag already published; Stopping Build.') -Category 'Information' -Details ($details | ConvertTo-Json)
+        Exit-AppVeyorBuild
+      } elseif ($env:APPVEYOR_REPO_TAG -eq 'true') {
+        $env:MODULE_VERSION = ((Get-Date -Format 'yyyy.MM.dd'), ((New-TimeSpan -Start ([datetime]::Today)).TotalSeconds -as [int])) -join '.'
+        Update-AppveyorBuild -Version ${env:MODULE_VERSION}
+        $details = [ordered] @{
+          APPVEYOR_REPO_TAG = $env:APPVEYOR_REPO_TAG
+          APPVEYOR_REPO_TAG_NAME = $env:APPVEYOR_REPO_TAG_NAME
+          MODULE_VERSION = $env:MODULE_VERSION
+        }
+        Add-AppveyorMessage -Message ('Git tag to publish Version: {0}' -f $env:MODULE_VERSION) -Category 'Information' -Details ($details | ConvertTo-Json)
+      } else {
+        Add-AppveyorMessage -Message 'Git Push, just running checks.' -Category 'Information'
+      }
+
+install:
+  # Bootstrap PSDepend and Install Dependencies
+  - ps: |
+      $InformationPreference = 'Continue'
+      & ([IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, '.build', 'buildPrep.ps1'))
+    on:
+      branch: master                 # release from master branch only
+
+# before_build:
+#   # Run Pester Tests
+#   - ps: |
+#       $invokePsake = @{
+#         BuildFile = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, '.build', 'buildPsake.ps1')
+#         TaskList = 'Test'
+#       }
+#       Invoke-psake @invokePsake
+#       if (-not $psake.build_success) {
+#         $Host.SetShouldExit(1)
+#       }
+#     on:
+#       branch: master                 # release from master branch only
+
+build_script:
+  - ps: |
+      $invokePsake = @{
+        BuildFile = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, '.build', 'buildPsake.ps1')
+        # TaskList = 'default'
+      }
+      Invoke-psake @invokePsake
+      if (-not $psake.build_success) {
+        $Host.SetShouldExit(1)
+      }
+    on:
+      branch: master                 # release from master branch only
+
+# test_script:
+#   # Run Pester Tests w/ CodeCov
+#   - ps: |
+#       $invokePsake = @{
+#         BuildFile = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, '.build', 'buildPsake.ps1')
+#         TaskList = 'Test'
+#         Parameters = @{
+#           Pester = @{
+#             Configuration = @{
+#               Run = @{
+#                 Path = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, 'Tests')
+#                 PassThru = $true
+#                 Exit = if ($env:CI) { $true } else { $false }
+#               }
+#               CodeCoverage = @{
+#                 Enabled = $true
+#                 # Path = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, 'dev', 'BuildOutput', 'PSRedstone', 'PSRedstone.psm1')
+#                 Path = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, 'PSRedstone', '*', '*.ps1')
+#               }
+#             }
+#           }
+#           CodeCoveragePath = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, 'dev', 'coverage.json')
+#         }
+#       }
+#       Invoke-psake @invokePsake
+#       if (-not $psake.build_success) {
+#         $Host.SetShouldExit(1)
+#       }
+#     on:
+#       branch: master                 # release from master branch only
+
+after_build:
+  # Upload coverage report to codecov
+  # Also, if we're tagged, delete the tag to prep for publishing release.
+  - ps: |
+      $invokePsake = @{
+        BuildFile = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, '.build', 'buildPsake.ps1')
+        TaskList = @('CodeCov', 'GitHubTagDelete', 'AppveyorArtifact')
+      }
+      Invoke-psake @invokePsake
+      if (-not $psake.build_success) {
+        $Host.SetShouldExit(1)
+      }
+    on:
+      branch: master                 # release from master branch only
+
+deploy:
+  # Deploy to GitHub Releases
+  - tag: v$(APPVEYOR_BUILD_VERSION)
+    release: v$(APPVEYOR_BUILD_VERSION)
+    provider: GitHub
+    auth_token:
+      secure: NegQQNxnvn93My5EI3I24WexZixb/9kXU+PpSaVYLoUHkqISEMZLkpwLjOHtqWsa
+    artifact: PSRedstone.zip
+    draft: false
+    prerelease: false
+    on:
+      APPVEYOR_REPO_TAG: true
+
+on_success:
+  # If build was started by pushed tag; deploy it.
+  - ps: |
+      if ($env:APPVEYOR_REPO_TAG -eq 'true' -and -not $env:APPVEYOR_REPO_TAG_NAME.StartsWith('v')) {
+        $invokePsake = @{
+          BuildFile = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, '.build', 'buildPsake.ps1')
+          TaskList = @('DeployPSGallery')
+        }
+        Invoke-psake @invokePsake
+        if (-not $psake.build_success) {
+          $Host.SetShouldExit(1)
+        }
+      }
+
+artifacts:
+  - path: dev\PSRedstone.zip
+    name: PSRedstone.zip

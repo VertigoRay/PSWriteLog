@@ -1,5 +1,32 @@
 Write messages to a log file in CMTrace.exe compatible format or Legacy text file format.
 
+# Quick Start
+
+Create a new script, mine will be called `foo.ps1` and will contain the following lines:
+
+```powershell
+#Requires -Modules PSWriteLog
+Write-Host 'Hello World!'
+```
+
+> ℹ: You'll notice that the `Hello World!` message did output to host as expected.
+
+Because nothing was configured, you can find the log in the default location:
+
+- `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`
+
+> ℹ: The file name will vary depending on your environment, but can be gleaned with this command:
+>
+> ```powershell
+> [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
+> ```
+
+If you open that file, you can see that the log appears in *CMTrace* format:
+
+```xml
+<![LOG[Info: Hello World!]LOG]!><time="22:32:05.575-360" date="01-05-2023" component="foo.ps1 {}" context="TEST\VertigoRay" type="6" thread="15" file="foo.ps1:2">
+```
+
 # Description
 
 Write messages to a log file in CMTrace.exe compatible format or Legacy text file format and optionally display in the console.
@@ -7,8 +34,7 @@ Write messages to a log file in CMTrace.exe compatible format or Legacy text fil
 To specify Default Parameters, use the PowerShell 3.0+ built-in [`$PSDefaultParameterValues`](https://technet.microsoft.com/en-us/library/hh847819.aspx) variable. Here's an example of specifying the Log file path and type globally:
 
 ```powershell
-$PSDefaultParameterValues.Add('Write-Log:LogFileDirectory', "${env:SystemRoot}\Logs")
-$PSDefaultParameterValues.Add('Write-Log:LogFileName', "MyApp.log")
+$PSDefaultParameterValues.Add('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyApp.log")
 $PSDefaultParameterValues.Add('Write-Log:LogType', 'CMTrace')
 ```
 

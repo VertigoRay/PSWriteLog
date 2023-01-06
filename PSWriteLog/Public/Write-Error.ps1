@@ -54,15 +54,15 @@ function global:Write-Error {
     begin
     {
         if ($MyInvocation.PSCommandPath) {
-            $invo_file = Split-Path $MyInvocation.PSCommandPath -Leaf
+            $invoFile = Split-Path $MyInvocation.PSCommandPath -Leaf
         } else {
-            $invo_file = Split-Path $MyInvocation.InvocationName -Leaf
+            $invoFile = Split-Path $MyInvocation.InvocationName -Leaf
         }
 
-        $write_log = @{
+        $writeLog = @{
             'Severity' = 'Error';
             'Component' = (& { $PSCallStack = (Get-PSCallStack)[2]; "$($PSCallStack.Command) $($PSCallStack.Arguments)" });
-            'Source' = "${invo_file}:$($MyInvocation.ScriptLineNumber)";
+            'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
         try {
@@ -108,7 +108,7 @@ function global:Write-Error {
                 $msg.Add("`nError Details As Json: $($PSBoundParameters | ConvertTo-Json)") | Out-Null
             }
 
-            Write-Log @write_log -Message ($msg -join ' ') -ErrorAction 'Stop'
+            Write-Log @writeLog -Message ($msg -join ' ') -ErrorAction 'Stop'
         }
 
         try {
