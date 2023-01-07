@@ -1,4 +1,13 @@
-Write messages to a log file in CMTrace.exe compatible format or Legacy text file format.
+[![Build status](https://ci.appveyor.com/api/projects/status/vxp2bf5b6t6t774y/branch/master?svg=true)](https://ci.appveyor.com/project/VertigoRay/pswritelog)
+[![codecov](https://codecov.io/gh/VertigoRay/PSWriteLog/branch/master/graph/badge.svg)](https://codecov.io/gh/VertigoRay/PSWriteLog)
+[![version](https://img.shields.io/powershellgallery/v/PSWriteLog.svg)](https://www.powershellgallery.com/packages/PSWriteLog)
+[![downloads](https://img.shields.io/powershellgallery/dt/PSWriteLog.svg?label=downloads)](https://www.powershellgallery.com/stats/packages/PSWriteLog?groupby=Version)
+[![PSScriptAnalyzer](https://github.com/VertigoRay/PSWriteLog/actions/workflows/powershell.yml/badge.svg)](https://github.com/VertigoRay/PSWriteLog/actions/workflows/powershell.yml)
+[![Codacy Security Scan](https://github.com/VertigoRay/PSWriteLog/actions/workflows/codacy.yml/badge.svg)](https://github.com/VertigoRay/PSWriteLog/actions/workflows/codacy.yml)
+[![DevSkim](https://github.com/VertigoRay/PSWriteLog/actions/workflows/devskim.yml/badge.svg)](https://github.com/VertigoRay/PSWriteLog/actions/workflows/devskim.yml)
+
+![PSWriteLog](https://t.ly/wrBQ) is a tool to standardize logging without the need to use new function calls in your PowerShell scripts.
+Just configure the log location (or don't) and start logging with your standard `Write` functions.
 
 # Quick Start
 
@@ -38,7 +47,7 @@ $PSDefaultParameterValues.Add('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyAp
 $PSDefaultParameterValues.Add('Write-Log:LogType', 'CMTrace')
 ```
 
-Can also import any/all of the availble proxy functions:
+This module will also import all of the proxy functions:
 
 - `Write-Debug` (Log dependent on `$DebugPreference`)
 - `Write-Error`
@@ -49,8 +58,4 @@ Can also import any/all of the availble proxy functions:
 - `Write-Verbose` (Log dependent on `$VerbosePreference`)
 - `Write-Warning` (Log dependent on `$WarningPreference`)
 
-Importing the above functions will log anythign sent to those proxy functions while keeping the original funtionality of those functions in tact.
-
-You may also want to make an alias
-
-[The wiki contains complete documentation.](/posh/write-log/wikis/home)
+Importing the above functions will log anything sent to those proxy functions while keeping the original funtionality of those functions in tact.
