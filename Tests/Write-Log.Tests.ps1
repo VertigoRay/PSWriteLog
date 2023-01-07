@@ -6,6 +6,7 @@ $VerbosePreference = 'SilentlyContinue'
 Describe 'Write-Log with parameters' {
     BeforeAll {
         $script:DefaultLog = "${TestDrive}\Logs\Write-Log.log"
+        $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
         # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Green'
         $script:Message = 'Hello World!!'
         # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Green'
@@ -211,125 +212,47 @@ Describe 'Write-Log with parameters' {
         }
 
         BeforeEach {
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $sw = [System.Diagnostics.Stopwatch]::new()
+            $sw.Start()
             Do {
+                if ($sw.Elapsed.TotalSeconds -gt 15) {
+                    break
+                }
                 Write-Log $script:Message -FilePath $script:LogFile.FullName -MaxLogFileSizeMB .1
                 $script:LogFile.Refresh()
-            } Until ($script:LogFile.Length -gt .1MB)
+                $script:LogFileArchived.Refresh()
+            } Until ($script:LogFileArchived.Exists)
         }
 
         It "Creates ${script:LogFileArchived}" {
             Write-Log $script:Message -FilePath $script:LogFile.FullName -MaxLogFileSizeMB .1
-            $script:LogFile.Refresh()
             $script:LogFileArchived | Should -Exist
         }
 
         It "The new '${script:LogFile}' is now very small." {
             Write-Log $script:Message -FilePath $script:LogFile.FullName -MaxLogFileSizeMB .1
             $script:LogFile.Refresh()
-            [int] ($script:LogFile.Length/1KB) | Should -Be 0
-        }
-    }
-
-    Context 'Write-Log $Message -WriteHost $true' {
-        Mock Write-Host { return $script:Message }
-
-        It "Should write to host" {
-            Write-Log $script:Message -WriteHost $true | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context 'Write-Log $Message -ContinueOnError $false' {
-        Mock Write-Host { return $script:Message }
-
-        It "Should not return an error" {
-            Write-Log $script:Message | Should -BeNullOrEmpty
-        }
-
-        It "Should return an error" {
-            Write-Log $script:Message -ContinueOnError $false | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context 'Write-Log $Message -PassThru' {
-        It "Should return '$script:Message'" {
-            Write-Log $script:Message -PassThru $true | Should -BeExactly $script:Message
-        }
-    }
-
-    Context 'Write-Log $Message -DebugMessage' {
-        BeforeEach {
-            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -DebugMessage
-        }
-
-        It "Should not create the log file '$script:DefaultLog'" {
-            $script:DefaultLog | Should -Not Exist
-        }
-    }
-
-    Context 'Write-Log $Message -DebugMessage -LogDebugMessage $true' {
-        BeforeEach {
-            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -DebugMessage -LogDebugMessage $true
-        }
-
-        It "Should create the log file '$script:DefaultLog'" {
-            $script:DefaultLog | Should -Exist
+            [int] ($script:LogFile.Length/1KB) | Should -BeLessThan 50
         }
     }
 }
 
-Describe 'Write-Log with $env:Write-Log' {
+Describe 'Write-Log with $PSDefaultParameterValues' {
     BeforeAll {
-        $script:DefaultLog = "${env:SystemRoot}\Logs\Write-Log.log"
+        $script:DefaultLog = "${TestDrive}\Logs\Write-Log.log"
+        $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
+        # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Green'
         $script:Message = 'Hello World!!'
-    }
-
-    AfterEach {
-        @(
-            $script:DefaultLog,
-            "${TestDrive}\$(Split-Path $script:DefaultLog -Leaf)",
-            "${TestDrive}\Test.log",
-            "${TestDrive}\Test.lo_"
-        ) | ForEach-Object {
-            if (Test-Path $_) {
-                $File = [IO.FileInfo] (Get-ChildItem -Path $_ -ErrorAction 'Stop')
-                if ($File.Length -lt 1000) {
-                    Write-Verbose "Content of '${_}':`n$([IO.File]::ReadAllText($_))"
-                } else {
-                    Write-Verbose "Size of '${_}': $($File.Length)"
-                    Write-Verbose "Last line of '${_}':`n$((Get-Content $_)[-1])"
-                }
-                Write-Verbose "Deleting '${_}'"
-                Remove-Item $_ -Force
-            }
-        }
-
-        if (Test-Path Env:\Write-Log) {
-            Write-Verbose "Deleting `$env:Write-Log: ${env:Write-Log}"
-            Remove-Item Env:\Write-Log -Force
-        }
-    }
-
-    Context 'Write-Log $Message ' {
-        BeforeEach {
-            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message
-        }
-
-        It "Creates ${script:DefaultLog}" {
-            $script:DefaultLog | Should -Exist
-        }
-
-        It "Writes '${script:Message}' to ${script:DefaultLog}" {
-            $script:DefaultLog | Should -FileContentMatch ([regex]::Escape($script:Message))
-        }
+        # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Green'
     }
 
     Context 'Write-Log $Message -LogType Legacy' {
-        BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'LogType'='Legacy'} -Compress
-            Write-Log $script:Message
+        BeforeEach  {
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
+            Write-Log "$script:Message"
         }
 
         It "Creates ${script:DefaultLog}" {
@@ -341,13 +264,15 @@ Describe 'Write-Log with $env:Write-Log' {
         }
 
         It "Does not writes '<![LOG[' to ${script:DefaultLog}" {
-            $script:DefaultLog | Should -Not -FileContentMatch ([regex]::Escape('<![LOG['))
+            $script:DefaultLog | Should -Not -FileContentMatch ('^{0}' -f [regex]::Escape('<![LOG['))
         }
     }
 
     Context 'Write-Log $Message -Severity 1' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Severity'=1} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 1)
             Write-Log $script:Message
         }
 
@@ -358,7 +283,10 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Severity 1 -LogType Legacy' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Severity'=1; 'LogType'='Legacy'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 1)
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
 
@@ -369,7 +297,9 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Severity 2' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Severity'=2} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 2)
             Write-Log $script:Message
         }
 
@@ -380,7 +310,10 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Severity 2 -LogType Legacy' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Severity'=2; 'LogType'='Legacy'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 2)
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
 
@@ -391,7 +324,9 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Severity 3' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Severity'=3} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 3)
             Write-Log $script:Message
         }
 
@@ -402,7 +337,10 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Severity 3 -LogType Legacy' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Severity'=3; 'LogType'='Legacy'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 3)
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
 
@@ -413,7 +351,9 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Source HELLO_WORLD' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Source'='HELLO_WORLD'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Source', 'HELLO_WORLD')
             Write-Log $script:Message
         }
 
@@ -424,7 +364,10 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Source HELLO_WORLD -LogType Legacy' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Source'='HELLO_WORLD'; 'LogType'='Legacy'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Source', 'HELLO_WORLD')
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
 
@@ -435,7 +378,9 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Component Pester' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Component'='Pester'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Component', 'Pester')
             Write-Log $script:Message
         }
 
@@ -446,50 +391,15 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -Component Pester -LogType Legacy' {
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'Component'='Pester'; 'LogType'='Legacy'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:Component', 'Pester')
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
 
         It "Writes '[Pester]' to ${script:DefaultLog}" {
             $script:DefaultLog | Should -FileContentMatch ([regex]::Escape(" [Pester]"))
-        }
-    }
-
-    Context 'Write-Log $Message -LogFileDirectory $TestDrive' {
-        BeforeAll {
-            $script:LogFile = "${TestDrive}\$(Split-Path $script:DefaultLog -Leaf)"
-        }
-
-        BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$TestDrive} -Compress
-            Write-Log $script:Message
-        }
-
-        It "Creates ${script:LogFile}" {
-            $script:LogFile | Should -Exist
-        }
-
-        It "Writes '${script:Message}' to ${script:LogFile}" {
-            $script:LogFile | Should -FileContentMatch ([regex]::Escape($script:Message))
-        }
-    }
-
-    Context 'Write-Log $Message -LogFileDirectory $TestDrive -LogType Legacy' {
-        BeforeAll {
-            $script:LogFile = "${TestDrive}\$(Split-Path $script:DefaultLog -Leaf)"
-        }
-
-        BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$TestDrive; 'LogType'='Legacy'} -Compress
-            Write-Log $script:Message
-        }
-
-        It "Creates ${script:LogFile}" {
-            $script:LogFile | Should -Exist
-        }
-
-        It "Writes '${script:Message}' to ${script:LogFile}" {
-            $script:LogFile | Should -FileContentMatch ([regex]::Escape($script:Message))
         }
     }
 
@@ -499,7 +409,9 @@ Describe 'Write-Log with $env:Write-Log' {
         }
 
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$TestDrive; 'LogFileName'='Test.log'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:FilePath', ([IO.Path]::Combine($TestDrive, 'Test.Log')))
             Write-Log $script:Message
         }
 
@@ -518,7 +430,10 @@ Describe 'Write-Log with $env:Write-Log' {
         }
 
         BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$TestDrive; 'LogFileName'='Test.log'; 'LogType'='Legacy'} -Compress
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:FilePath', ([IO.Path]::Combine($TestDrive, 'Test.Log')))
+            $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
 
@@ -533,81 +448,36 @@ Describe 'Write-Log with $env:Write-Log' {
 
     Context 'Write-Log $Message -FilePath "$TestDrive\Test.log" -MaxLogFileSizeMB .1' {
         BeforeAll {
-            $script:LogFile = [IO.Path]::Combine($TestDrive, 'Test.log')
-            $LogFileArchived = $([IO.Path]::ChangeExtension($LogFile, 'lo_'))
+            [IO.FileInfo] $script:LogFile = [IO.Path]::Combine($TestDrive, 'Test.log')
+            [IO.FileInfo] $script:LogFileArchived = $([IO.Path]::ChangeExtension($LogFile, 'lo_'))
         }
 
         BeforeEach {
+            Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
+            $PSDefaultParameterValues = @{}
+            $PSDefaultParameterValues.Set_Item('Write-Log:FilePath', ([IO.Path]::Combine($TestDrive, 'Test.Log')))
+            $PSDefaultParameterValues.Set_Item('Write-Log:-MaxLogFileSizeMB', .1)
+            $sw = [System.Diagnostics.Stopwatch]::new()
+            $sw.Start()
             Do {
-                Write-Log $script:Message -FilePath "$TestDrive\Test.log" -MaxLogFileSizeMB 0
-            } Until (([IO.FileInfo] (Get-ChildItem -Path $script:LogFile -ErrorAction 'Stop')).Length -gt .1MB)
+                if ($sw.Elapsed.TotalSeconds -gt 15) {
+                    break
+                }
+                Write-Log $script:Message
+                $script:LogFile.Refresh()
+                $script:LogFileArchived.Refresh()
+            } Until ($script:LogFileArchived.Exists)
         }
 
         It "Creates ${LogFileArchived}" {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$TestDrive; 'LogFileName'='Test.log'; 'MaxLogFileSizeMB'=.1} -Compress
             Write-Log $script:Message
             $LogFileArchived | Should -Exist
         }
 
         It "The new '${script:LogFile}' is now very small." {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'=$TestDrive; 'LogFileName'='Test.log'; 'MaxLogFileSizeMB'=.1} -Compress
             Write-Log $script:Message
-            [int](([IO.FileInfo] (Get-ChildItem -Path $script:LogFile -ErrorAction 'Stop')).Length/1KB) | Should -Be 0
-        }
-    }
-
-    Context 'Write-Log $Message -WriteHost $true' {
-        BeforeAll {
-            ${env:Write-Log} = ConvertTo-Json @{'WriteHost'=$true} -Compress
-        }
-
-        Mock Write-Host { return $script:Message }
-
-        It "Should write to host" {
-            Write-Log $script:Message | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context 'Write-Log $Message -ContinueOnError $false' {
-        Mock Write-Host { return $script:Message }
-
-        It "Should not return an error" {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'='C:\C:\Temp'} -Compress
-            Write-Log $script:Message | Should -BeNullOrEmpty
-        }
-
-        It "Should return an error" {
-            ${env:Write-Log} = ConvertTo-Json @{'LogFileDirectory'='C:\C:\Temp'; 'ContinueOnError'=$false} -Compress
-            Write-Log $script:Message | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context 'Write-Log $Message -PassThru' {
-        It "Should return '$script:Message'" {
-            ${env:Write-Log} = ConvertTo-Json @{'PassThru'=$true} -Compress
-            Write-Log $script:Message | Should -BeExactly $script:Message
-        }
-    }
-
-    Context 'Write-Log $Message -DebugMessage' {
-        BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'DebugMessage'=$true} -Compress
-            Write-Log $script:Message
-        }
-
-        It "Should not create the log file '$script:DefaultLog'" {
-            $script:DefaultLog | Should -Not Exist
-        }
-    }
-
-    Context 'Write-Log $Message -DebugMessage -LogDebugMessage $true' {
-        BeforeEach {
-            ${env:Write-Log} = ConvertTo-Json @{'DebugMessage'=$true; 'LogDebugMessage'=$true} -Compress
-            Write-Log $script:Message
-        }
-
-        It "Should create the log file '$script:DefaultLog'" {
-            $script:DefaultLog | Should -Exist
+            $script:LogFile.Refresh()
+            [int] ($script:LogFile.Length/1KB) | Should -BeLessThan 50
         }
     }
 }

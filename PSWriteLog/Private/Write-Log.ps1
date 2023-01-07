@@ -3,8 +3,6 @@
 Write messages to a log file in CMTrace.exe compatible format or Legacy text file format.
 .DESCRIPTION
 Write messages to a log file in CMTrace.exe compatible format or Legacy text file format and optionally display in the console.
-
-Can also specify parameters via $env:Write-Log variable. Store variables in as JSON. [More in the wiki.](https://github.com/VertigoRay/PSWriteLog)
 .PARAMETER Message
 The message to write to the log file or output to the console.
 .PARAMETER Severity
@@ -101,11 +99,13 @@ function global:Write-Log {
         # Get the name of this function
         [string] $CmdletName = $PSCmdlet.MyInvocation.MyCommand.Name
 
-        [scriptblock] $logDate = { (Get-Date -Format MM-dd-yyyy).ToString() }
+        [scriptblock] $logDate = {
+            return (Get-Date -Format MM-dd-yyyy).ToString()
+        }
 
         [scriptblock] $logTime = {
             [string] $script:logTimeZoneBias = [System.TimeZone]::CurrentTimeZone.GetUtcOffset([datetime]::Now).TotalMinutes
-            "$((Get-Date -Format HH:mm:ss.fff).ToString())${script:logTimeZoneBias}"
+            return "$((Get-Date -Format HH:mm:ss.fff).ToString())${script:logTimeZoneBias}"
         }
 
         # Create script block for generating a Legacy log entry
@@ -125,13 +125,14 @@ function global:Write-Log {
             $legacyMessage.Add("[${Severity}]") | Out-Null
             $legacyMessage.Add(($lMessage.Trim() | Out-String)) | Out-Null
 
-            Write-Output ($legacyMessage -join ' ').Trim()
+            return ($legacyMessage -join ' ').Trim()
         }
 
         # Create script block for generating CMTrace.exe compatible log entry
         [scriptblock] $cmTraceLogString = {
-            Param (
-                [string] $lMessage
+            param(
+                [string]
+                $lMessage
             )
             Write-Debug "[Write-Log] Source (sb): ${Source}" @writeDebug
             $severityMap = @{ # Vaguely based on POSH stream numbers
@@ -146,7 +147,7 @@ function global:Write-Log {
                 Warning     = 2
             }
 
-            Write-Output ('<![LOG[{0}: {1}]LOG]!><time="{2}" date="{3}" component="{4}" context="{5}" type="{6}" thread="{7}" file="{8}">' -f @(
+            return ('<![LOG[{0}: {1}]LOG]!><time="{2}" date="{3}" component="{4}" context="{5}" type="{6}" thread="{7}" file="{8}">' -f @(
                 $Severity
                 $lMessage.Trim()
                 & $logTime
@@ -159,6 +160,19 @@ function global:Write-Log {
             ))
         }
 
+        [scriptblock] $getLogLine = {
+            param(
+                [string]
+                $sMsg
+            )
+            ## Choose which log type to write to file
+            if ($LogType -ieq 'CMTrace') {
+                return & $cmTraceLogString -lMessage ($sMsg | Out-String).Trim() -lSource $Source
+            } else {
+                return & $legacyLogString -lMessage ($sMsg | Out-String).Trim() -lSource $Source
+            }
+        }
+
         #  Create the directory where the log file will be saved
         if (-not $FilePath.Directory.Exists) {
             New-Item -Path $FilePath.DirectoryName -Type 'Directory' -Force -ErrorAction 'Stop' | Out-Null
@@ -169,19 +183,12 @@ function global:Write-Log {
         # Exit function if it is a debug message and 'LogDebugMessage' option is not $true, or if the log directory was not successfully created in 'Begin' block.
         if (($DebugMessage -and -not $LogDebugMessage)) { Return }
 
-        foreach ($Msg in $Message) {
+        foreach ($msg in $Message) {
             Write-Debug "[Write-Log] Source: $Source" @writeDebug
             # Write the log entry to the log file if logging is not currently disabled
             if (-not $DisableLogging) {
-                ## Choose which log type to write to file
-                if ($LogType -ieq 'CMTrace') {
-                    [string] $LogLine = & $cmTraceLogString -lMessage ($Msg | Out-String).Trim() -lSource $Source
-                } else {
-                    [string] $LogLine = & $legacyLogString -lMessage ($Msg | Out-String).Trim() -lSource $Source
-                }
-
                 try {
-                    $LogLine | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
+                    & $getLogLine -sMsg $msg | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
                 } catch {
                     if (-not $ContinueOnError) {
                         throw "[$(& $logDate) $(& $logTime)] [${CmdletName}] [${Component}] :: Failed to write message [$Msg] to the log file [$LogFilePath]. `n$(Resolve-Error)"
@@ -205,24 +212,23 @@ function global:Write-Log {
                         Component = $Component
                         Source = $CmdletName
                         Severity = 'Info'
-                        FilePath = $FilePath
+                        FilePath = $FilePath.FullName
                         LogType = $LogType
                         MaxLogFileSizeMB = $MaxLogFileSizeMB
-                        WriteHost = $WriteHost
                         ContinueOnError = $ContinueOnError
                     }
 
                     # Log message about archiving the log file
                     if ((Get-PSCallStack)[1].Command -ne 'Write-Log') {
                         # Prevent Write-Log from looping more than once.
-                        Write-Log -Message "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Rename log file to: ${archivedOutLogFile}" @archiveLogParams
+                        & $getLogLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Rename log file to: ${archivedOutLogFile}" | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
                     }
 
                     # Archive existing log file from <filename>.log to <filename>.lo_. Overwrites any existing <filename>.lo_ file. This is the same method SCCM uses for log files.
                     Move-Item -Path $FilePath.FullName -Destination $archivedOutLogFile -Force -ErrorAction 'Stop'
 
                     # Start new log file and Log message about archiving the old log file
-                    Write-Log -Message "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Previous log file was renamed to: ${archivedOutLogFile}" @archiveLogParams
+                    & $getLogLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Previous log file was renamed to: ${archivedOutLogFile}" | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
                 } else {
                     Write-Debug "[Write-Log] Log File does not need to be archived." @writeDebug
                 }
