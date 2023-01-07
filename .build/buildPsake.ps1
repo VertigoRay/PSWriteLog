@@ -109,13 +109,13 @@ task BuildManifest {
         $Manifest.VariablesToExport = @()
     }
 
-    $Manifest.Path = [IO.Path]::Combine($script:parentDevModulePath, ('{0}.psd1' -f $script:thisModuleName))
+    $Manifest.Path = [IO.Path]::Combine($script:parentModulePath, ('{0}.psd1' -f $script:thisModuleName))
     $Manifest.RootModule = "${script:thisModuleName}.psm1"
     $Manifest.ModuleVersion = [version] $Version
 
     $Manifest.Remove('ModuleName') # Not a parameter.
 
-    Write-Host "[PSAKE BuildManifest] New-ModuleManifest: $($Manifest | ConvertTo-Json)" -ForegroundColor 'DarkMagenta'
+    Write-Host "[PSAKE BuildManifest] New-ModuleManifest: $($Manifest | ConvertTo-Json)" -ForegroundColor 'Black' -BackgroundColor 'Cyan'
     New-ModuleManifest @Manifest
 }
 
@@ -152,9 +152,9 @@ task Build -Depends BuildManifest {
 
     $license = @{
         LiteralPath = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'LICENSE.md')
-        Destination = [IO.Path]::Combine($script:parentDevModulePath, 'LICENSE.md')
+        Destination = [IO.Path]::Combine($script:parentModulePath, 'LICENSE.md')
     }
-    Write-Host ('[PSAKE Build] Copy License: {0}' -f ($license | ConvertTo-Json)) -ForegroundColor 'DarkMagenta' -BackgroundColor 'Cyan'
+    Write-Host ('[PSAKE Build] Copy License: {0}' -f ($license | ConvertTo-Json)) -ForegroundColor 'Black' -BackgroundColor 'Cyan'
     Copy-Item @license -Force
 
     # Sign Code
@@ -177,7 +177,7 @@ task Build -Depends BuildManifest {
         CompressionLevel = 'Optimal'
         DestinationPath = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', ('{0}.zip' -f $script:thisModuleName))
     }
-    Write-Host ('[PSAKE Build] Compress Archive: {0}' -f ($compress | ConvertTo-Json)) -ForegroundColor 'DarkMagenta' -BackgroundColor 'Cyan'
+    Write-Host ('[PSAKE Build] Compress Archive: {0}' -f ($compress | ConvertTo-Json)) -ForegroundColor 'Black' -BackgroundColor 'Cyan'
     Compress-Archive @compress
 }
 
