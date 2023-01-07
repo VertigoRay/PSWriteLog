@@ -11,6 +11,7 @@ Just configure the log location (or don't) and start logging with your standard 
 
 # Quick Start
 
+Before you do anything, [install PSWriteLog](https://www.powershellgallery.com/packages/PSWriteLog).
 Create a new script, mine will be called `foo.ps1` and will contain the following lines:
 
 ```powershell

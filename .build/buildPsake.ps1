@@ -151,10 +151,11 @@ task Build -Depends BuildManifest {
     }
 
     $license = @{
-        Source = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'LICENSE.md')
+        LiteralPath = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'LICENSE.md')
         Destination = [IO.Path]::Combine($script:parentDevModulePath, 'LICENSE.md')
     }
-    Copy-Item -LiteralPath $license.Source -Destination $license.Destination -Force
+    Write-Host ('[PSAKE Build] Copy License: {0}' -f ($license | ConvertTo-Json)) -ForegroundColor 'DarkMagenta' -BackgroundColor 'Cyan'
+    Copy-Item @license -Force
 
     # Sign Code
     # $pfxESE = [IO.Path]::Combine($env:Temp, 'ese.pfx')
@@ -176,6 +177,7 @@ task Build -Depends BuildManifest {
         CompressionLevel = 'Optimal'
         DestinationPath = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', ('{0}.zip' -f $script:thisModuleName))
     }
+    Write-Host ('[PSAKE Build] Compress Archive: {0}' -f ($compress | ConvertTo-Json)) -ForegroundColor 'DarkMagenta' -BackgroundColor 'Cyan'
     Compress-Archive @compress
 }
 
