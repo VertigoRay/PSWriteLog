@@ -12,7 +12,7 @@ properties {
     #     Write-Host ('{0}: {1}' -f $item.Name, $item.Value) -ForegroundColor 'Black'
     # }
 
-    $script:psScriptRootParent = ([IO.DirectoryInfo] $PSScriptRoot).Parent.FullName
+    $script:psScriptRootParent = ([IO.DirectoryInfo] $PSScriptRoot).Parent
     $script:thisModuleName = if ($mn = (Get-ChildItem $script:psScriptRootParent.FullName -Directory -Filter $script:psScriptRootParent.BaseName).BaseName) {
         # AppVeyor's project folder is changed to all lowercase (same as URL slug).
         # This attempts to grab the sub-folder with the same name to preserve the preferred case.
@@ -151,7 +151,7 @@ task Build -Depends BuildManifest {
     }
 
     $license = @{
-        Source = [IO.Path]::Combine($script:psScriptRootParent, 'LICENSE.md')
+        Source = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'LICENSE.md')
         Destination = [IO.Path]::Combine($script:parentDevModulePath, 'LICENSE.md')
     }
     Copy-Item -LiteralPath $license.Source -Destination $license.Destination -Force
