@@ -15,7 +15,7 @@ Because nothing was configured, you can find the log in the default location:
 
 - `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`
 
-> ℹ: The file name will vary depending on your environment, but can be gleaned with this command:
+> ℹ: The default file name will vary depending on your environment, but it can be gleaned with this command:
 >
 > ```powershell
 > [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
