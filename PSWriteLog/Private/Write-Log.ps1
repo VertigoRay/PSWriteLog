@@ -191,7 +191,16 @@ function global:Write-Log {
                     & $getLogLine -sMsg $msg | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
                 } catch {
                     if (-not $ContinueOnError) {
-                        throw "[$(& $logDate) $(& $logTime)] [${CmdletName}] [${Component}] :: Failed to write message [$Msg] to the log file [$LogFilePath]. `n$(Resolve-Error)"
+                        throw ('[{0} {1}] [{2}] [{3}] :: Failed to write message [{4}] to the log file [{5}].{6}{7}' -f @(
+                            & $logDate
+                            & $logTime
+                            $CmdletName
+                            $Component
+                            $Msg
+                            $FilePath.FullName
+                            "`n"
+                            Resolve-Error | Out-String
+                        ))
                     }
                 }
             }
@@ -208,15 +217,6 @@ function global:Write-Log {
                     Write-Debug "[Write-Log] Log File Needs to be archived ..." @writeDebug
                     # Change the file extension to "lo_"
                     [string] $archivedOutLogFile = [IO.Path]::ChangeExtension($FilePath.FullName, 'lo_')
-                    [hashtable] $archiveLogParams = @{
-                        Component = $Component
-                        Source = $CmdletName
-                        Severity = 'Info'
-                        FilePath = $FilePath.FullName
-                        LogType = $LogType
-                        MaxLogFileSizeMB = $MaxLogFileSizeMB
-                        ContinueOnError = $ContinueOnError
-                    }
 
                     # Log message about archiving the log file
                     if ((Get-PSCallStack)[1].Command -ne 'Write-Log') {
@@ -237,8 +237,5 @@ function global:Write-Log {
                 Write-Debug "[Write-Log] Archive Error: ${_}" @writeDebug
             }
         }
-
-        Write-Debug "[Write-Log] Archive Finally: PassThru($( if ($PassThru) {'true'} else {'false'} ))" @writeDebug
-        if ($PassThru) { Write-Output $Message }
     }
 }

@@ -1,8 +1,6 @@
 ﻿$script:psProjectRoot = ([IO.DirectoryInfo] $PSScriptRoot).Parent
 . ('{0}\PSWriteLog\Private\Write-Log.ps1' -f $psProjectRoot.FullName)
 
-$VerbosePreference = 'SilentlyContinue'
-
 Describe 'Write-Log with parameters' {
     BeforeAll {
         $script:DefaultLog = "${TestDrive}\Logs\Write-Log.log"
@@ -456,7 +454,7 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
             $PSDefaultParameterValues.Set_Item('Write-Log:FilePath', ([IO.Path]::Combine($TestDrive, 'Test.Log')))
-            $PSDefaultParameterValues.Set_Item('Write-Log:-MaxLogFileSizeMB', .1)
+            $PSDefaultParameterValues.Set_Item('Write-Log:MaxLogFileSizeMB', .1)
             $sw = [System.Diagnostics.Stopwatch]::new()
             $sw.Start()
             Do {
