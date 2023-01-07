@@ -1,18 +1,18 @@
 $script:psProjectRoot = ([IO.DirectoryInfo] $PSScriptRoot).Parent
 . ('{0}\PSWriteLog\Private\Write-Log.ps1' -f $psProjectRoot.FullName)
-. ('{0}\PSWriteLog\Public\Write-Debug.ps1' -f $psProjectRoot.FullName)
+. ('{0}\PSWriteLog\Public\Write-Warning.ps1' -f $psProjectRoot.FullName)
 
-Describe 'Write-Debug Continue' {
+Describe 'Write-Warning Continue' {
     BeforeAll {
-        $DebugPreference = 'Continue'
-        $script:DefaultLog = "${TestDrive}\Logs\Write-Debug.log"
+        $WarningPreference = 'Continue'
+        $script:DefaultLog = "${TestDrive}\Logs\Write-Warning.log"
         $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
         # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Green'
         $script:Message = 'Hello World!!'
         # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Green'
     }
 
-    Context 'Write-Debug $Message' {
+    Context 'Write-Warning $Message' {
         BeforeAll {
             $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
             # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Cyan'
@@ -23,7 +23,7 @@ Describe 'Write-Debug Continue' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Magenta'
-            Write-Debug $script:Message
+            Write-Warning $script:Message
         }
 
         It "Creates ${script:DefaultLog}" {
@@ -38,17 +38,17 @@ Describe 'Write-Debug Continue' {
         }
     }
 }
-Describe 'Write-Debug SilentlyContinue' {
+Describe 'Write-Warning SilentlyContinue' {
     BeforeAll {
-        $DebugPreference = 'SilentlyContinue'
-        $script:DefaultLog = "${TestDrive}\Logs\Write-Debug.log"
+        $WarningPreference = 'SilentlyContinue'
+        $script:DefaultLog = "${TestDrive}\Logs\Write-Warning.log"
         $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
         # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Green'
         $script:Message = 'Hello World!!'
         # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Green'
     }
 
-    Context 'Write-Debug $Message' {
+    Context 'Write-Warning $Message' {
         BeforeAll {
             $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
             # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Cyan'
@@ -59,7 +59,7 @@ Describe 'Write-Debug SilentlyContinue' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Magenta'
-            Write-Debug $script:Message
+            Write-Warning $script:Message
         }
 
         It "Creates ${script:DefaultLog}" {
