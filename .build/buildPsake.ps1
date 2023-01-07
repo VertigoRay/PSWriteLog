@@ -373,9 +373,12 @@ task DeployPSGallery {
 }
 
 task AppveyorArtifact {
-    $fileName = [IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, 'dev', ('{0}.zip' -f $script:thisModuleName))
-    Write-Host ('[PSAKE AppveyorArtifact] Push-AppveyorArtifact FileName: {0}' -f $fileName) -ForegroundColor 'DarkMagenta'
+    [IO.FileInfo] $fileName = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', ('{0}.zip' -f $script:thisModuleName))
+    Write-Host ('[PSAKE AppveyorArtifact] Push-AppveyorArtifact FileName: {0}' -f $fileName.FullName) -ForegroundColor 'DarkMagenta'
+    Write-Host ('[PSAKE AppveyorArtifact] Push-AppveyorArtifact FileName Exists: {0}' -f $fileName.Exists) -ForegroundColor 'DarkMagenta'
     $newFileName = '{0}.{1}.zip' -f $script:thisModuleName, $env:APPVEYOR_BUILD_VERSION
     Write-Host ('[PSAKE AppveyorArtifact] Push-AppveyorArtifact NewFileName: {0}' -f $newFileName) -ForegroundColor 'DarkMagenta'
-    Push-AppveyorArtifact $fileName -FileName $newFileName
+    if ($fileName.Exists) {
+        Push-AppveyorArtifact $fileName.FullName -FileName $newFileName
+    }
 }
