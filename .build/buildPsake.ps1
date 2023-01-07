@@ -12,7 +12,7 @@ properties {
     #     Write-Host ('{0}: {1}' -f $item.Name, $item.Value) -ForegroundColor 'Black'
     # }
 
-    $script:psScriptRootParent = ([IO.DirectoryInfo] $PSScriptRoot).Parent
+    $script:psScriptRootParent = ([IO.DirectoryInfo] $PSScriptRoot).Parent.FullName
     $script:thisModuleName = if ($mn = (Get-ChildItem $script:psScriptRootParent.FullName -Directory -Filter $script:psScriptRootParent.BaseName).BaseName) {
         # AppVeyor's project folder is changed to all lowercase (same as URL slug).
         # This attempts to grab the sub-folder with the same name to preserve the preferred case.
