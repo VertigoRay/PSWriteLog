@@ -5,6 +5,11 @@ image: WMF 5
 skip_commits:
   message: /update(?:|d|s) readme\..*/
 
+environment:
+  # CODECOV_TOKEN is different per repo.
+  CODECOV_TOKEN:
+    secure: DH3g9mDnFhXG/aZySIgMf+/BavJgs44BsBML4cDj392Fd1tDY/8RADmCdY5LmLNK
+
 init:
   - ps: |
       if ($env:APPVEYOR_REPO_TAG -eq 'true' -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith('v')) {
