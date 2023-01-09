@@ -1,9 +1,9 @@
 {
-    "Description": "PSRedstone is framework designed to streamline third software installation and configuration. It is designed to make endpoint managers more agile with a Configuration Management, DevOps, and Infrastructure as Code (IaC) mentality.",
+    "Description": "PSWriteLog is a tool to standardize logging without the need to use new function calls in your PowerShell scripts. Just configure the log location (or don't) and start logging with your standard Write functions.",
     "Author": "Raymond Piller",
-    "CompanyName": "Endpoint Solutions Engineering, Tech Solutions, University of Texas at San Antonio",
-    "Copyright": "(c) {0} University of Texas at San Antonio. All rights reserved.",
-    "GUID": "3357cc90-9e07-441d-993c-ff07ab24a9ef",
+    "CompanyName": "Vertigion",
+    "Copyright": "(c) {0} Raymond (VertigoRay) Piller",
+    "GUID": "483c7caa-b993-4f90-ba2a-8f946946cd89",
     "PowerShellVersion": "5.0",
-    "HelpInfoURI": "https://utsa.edu/techsolutions"
+    "HelpInfoURI": "https://github.com/VertigoRay/PSWriteLog"
 }

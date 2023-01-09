@@ -89,12 +89,7 @@ function global:Write-Log {
     )
 
     begin {
-        if ((Get-Command 'Write-Debug').Source -eq 'Microsoft.PowerShell.Utility') {
-            $writeDebug = @{}
-        } else {
-            $writeDebug = @{'NoLog' = $true}
-        }
-        Write-Debug "[Write-Log] BoundParameters: $($MyInvocation.BoundParameters | Out-String)" @writeDebug
+        Microsoft.PowerShell.Utility\Write-Information "[Write-Log] BoundParameters: $($MyInvocation.BoundParameters | Out-String)" -Tags 'VertigoRay\PSWriteLog','Write-Log'
 
         # Get the name of this function
         [string] $CmdletName = $PSCmdlet.MyInvocation.MyCommand.Name
@@ -134,7 +129,7 @@ function global:Write-Log {
                 [string]
                 $lMessage
             )
-            Write-Debug "[Write-Log] Source (sb): ${Source}" @writeDebug
+            Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Source (sb): ${Source}" -Tags 'VertigoRay\PSWriteLog','Write-Log'
             $severityMap = @{ # Vaguely based on POSH stream numbers
                 Debug       = 5
                 Error       = 3
@@ -184,7 +179,7 @@ function global:Write-Log {
         if (($DebugMessage -and -not $LogDebugMessage)) { Return }
 
         foreach ($msg in $Message) {
-            Write-Debug "[Write-Log] Source: $Source" @writeDebug
+            Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Source: $Source" -Tags 'VertigoRay\PSWriteLog','Write-Log'
             # Write the log entry to the log file if logging is not currently disabled
             if (-not $DisableLogging) {
                 try {
@@ -212,9 +207,9 @@ function global:Write-Log {
         if ($MaxLogFileSizeMB) {
             try {
                 [decimal] $LogFileSizeMB = $FilePath.Length/1MB
-                Write-Debug "[Write-Log] LogFileSizeMB: $LogFileSizeMB / $MaxLogFileSizeMB" @writeDebug
+                Microsoft.PowerShell.Utility\Write-Information "[Write-Log] LogFileSizeMB: $LogFileSizeMB / $MaxLogFileSizeMB" -Tags 'VertigoRay\PSWriteLog','Write-Log'
                 if ($LogFileSizeMB -gt $MaxLogFileSizeMB) {
-                    Write-Debug "[Write-Log] Log File Needs to be archived ..." @writeDebug
+                    Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Log File Needs to be archived ..." -Tags 'VertigoRay\PSWriteLog','Write-Log'
                     # Change the file extension to "lo_"
                     [string] $archivedOutLogFile = [IO.Path]::ChangeExtension($FilePath.FullName, 'lo_')
 
@@ -230,11 +225,11 @@ function global:Write-Log {
                     # Start new log file and Log message about archiving the old log file
                     & $getLogLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Previous log file was renamed to: ${archivedOutLogFile}" | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
                 } else {
-                    Write-Debug "[Write-Log] Log File does not need to be archived." @writeDebug
+                    Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Log File does not need to be archived." -Tags 'VertigoRay\PSWriteLog','Write-Log'
                 }
             } catch {
                 # If renaming of file fails, script will continue writing to log file even if size goes over the max file size
-                Write-Debug "[Write-Log] Archive Error: ${_}" @writeDebug
+                Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Archive Error: ${_}" -Tags 'VertigoRay\PSWriteLog','Write-Log'
             }
         }
     }
