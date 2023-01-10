@@ -192,6 +192,9 @@ task Build -Depends BuildManifest {
         Push-AppveyorArtifact ([IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', 'dev.7z')) -FileName $newFileName
     }
 
+    # Keep getting an error during Publish-Module. Grabbing a copy of the file from the server to see where it's erroring.
+    Copy-Item 'C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\PSModule.psm1' -Destination $script:parentModulePath
+
     $compress = @{
         Path = $script:parentModulePath
         Filter = '*'
