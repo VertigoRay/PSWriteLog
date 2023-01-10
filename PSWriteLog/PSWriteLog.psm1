@@ -15,6 +15,24 @@ foreach ($import in $ps1s) {
 # The PSD1 is generated from the build pipeline.
 #endregion
 $psd1 = Import-PowerShellDataFile ([IO.Path]::Combine($PSScriptRoot, 'PSWriteLog.psd1'))
+
+# Check if the current context is elevated (Are we running as an administrator?)
+if ((New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    # Anytime this Module is used, the version and timestamp will be stored in the registry.
+    # This will allow more intelligent purging of unused versions.
+    $versionUsed = @{
+        LiteralPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\VertigoRay\PSWriteLog\VersionsUsed'
+        Name = $psd1.ModuleVersion
+        Value = (Get-Date -Format 'O')
+        Force = $true
+    }
+    Write-Debug ('Version Used: {0}' -f ($versionUsed | ConvertTo-Json))
+    if (-not (Test-Path $versionUsed.LiteralPath)) {
+        New-Item -Path $versionUsed.LiteralPath –Force
+    }
+    Set-ItemProperty @versionUsed
+}
+
 $moduleMember = @{
     Cmdlet = $psd1.CmdletsToExport
     Function = $psd1.FunctionsToExport
