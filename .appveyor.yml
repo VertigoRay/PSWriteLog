@@ -10,6 +10,10 @@ environment:
   CODECOV_TOKEN:
     secure: DH3g9mDnFhXG/aZySIgMf+/BavJgs44BsBML4cDj392Fd1tDY/8RADmCdY5LmLNK
 
+artifacts:
+  - path: dev\PSWriteLog.zip
+    name: PSWriteLog.zip
+
 init:
   - ps: |
       if ($env:APPVEYOR_REPO_TAG -eq 'true' -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith('v')) {
@@ -89,7 +93,3 @@ on_success:
           $Host.SetShouldExit(1)
         }
       }
-
-artifacts:
-  - path: dev\PSWriteLog.zip
-    name: PSWriteLog.zip
