@@ -85,8 +85,6 @@ if (Get-Module 'PSWriteLog' -ListAvailable) {
 
     Write-Information '[REMEDIATION] Install all versions greater than or equal to the minimum version required; set above.'
     Find-Module 'PSWriteLog' -Repository 'PSGallery' -AllVersions | Where-Object {
-        $_.Version -lt (Find-Module 'PSWriteLog' -ErrorAction 'Ignore').Version
-    } | Where-Object {
         $_.Version -ge $MinimumVersionRequired
     } | Foreach-Object {
         Install-Module $_.Name -RequiredVersion $_.Version -Scope 'CurrentUser' -Repository 'PSGallery' -Force -AllowClobber
