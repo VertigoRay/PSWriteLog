@@ -70,7 +70,7 @@ deploy:
     release: v$(APPVEYOR_BUILD_VERSION)
     provider: GitHub
     auth_token: $(GITHUB_PERSONAL_ACCESS_TOKEN)
-    artifact: PSRedstone.zip
+    artifact: PSWriteLog.zip
     draft: false
     prerelease: false
     on:
@@ -91,5 +91,5 @@ on_success:
       }
 
 artifacts:
-  - path: dev\PSRedstone.zip
-    name: PSRedstone.zip
+  - path: dev\PSWriteLog.zip
+    name: PSWriteLog.zip
