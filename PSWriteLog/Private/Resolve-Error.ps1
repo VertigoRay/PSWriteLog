@@ -67,7 +67,7 @@ function Resolve-Error {
 		## If function was called without specifying an error record, then choose the latest error that occurred
 		if (-not $ErrorRecord) {
 			if ($global:Error.Count -eq 0) {
-				Microsoft.PowerShell.Utility\Write-Information -Message 'The $Error collection is empty' -Tags 'VertigoRay\PSWriteLog','Resolve-Error'
+				# Microsoft.PowerShell.Utility\Write-Information -Message 'The $Error collection is empty' -Tags 'VertigoRay\PSWriteLog','Resolve-Error'
 				return
 			}
 			Else {

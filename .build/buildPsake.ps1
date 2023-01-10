@@ -174,7 +174,7 @@ task Build -Depends BuildManifest {
     # }
 
     # Keep getting an error during Publish-Module. Grabbing a copy of the file from the server to see where it's erroring.
-    Copy-Item 'C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\PSModule.psm1' -Destination $script:parentModulePath
+    # Copy-Item 'C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\PSModule.psm1' -Destination ([IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev'))
 
     $compress = @{
         Path = [IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev')
@@ -411,6 +411,21 @@ task DeployPSGallery {
         Deployed with PSDeploy
             - https://github.com/RamblingCookieMonster/PSDeploy
     #>
+
+    <#
+    PSWriteLog proxy functions are breaking PowerShellGet\PSModule.psm1
+    Will dive into later if need be ... it's like just Write-Output
+    For now, unload them all
+    #>
+    Remove-Item 'Function:\Write-Debug' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Error' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Host' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Information' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Output' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Progress' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Verbose' -Force -ErrorAction 'Ignore' -Verbose
+    Remove-Item 'Function:\Write-Warning' -Force -ErrorAction 'Ignore' -Verbose
+
     [IO.DirectoryInfo] $buildOutputModule = [IO.Path]::Combine($script:BuildOutput, $script:thisModuleName)
 
     Write-Host ('[PSAKE DeployPSGallery] APPVEYOR_PROJECT_NAME: {0}' -f $env:APPVEYOR_PROJECT_NAME) -Foregroundcolor 'Magenta'
