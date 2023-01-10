@@ -13,7 +13,7 @@ Just configure the log location (or don't) and start logging with your standard 
 - [Description](#description)
 - [Bypassing Write-Log](#bypassing-write-log)
 - [Debug with Write-Information](#debug-with-write-information)
-  - [Apply to PSWriteLog](#apply-to-pswritelog)
+  - [Debug PSWriteLog (or Your Application)](#debug-pswritelog-or-your-application)
 
 # Quick Start
 
@@ -123,9 +123,10 @@ If you aren't near a PowerShell terminal, here's a quick demo:
 
 ![Write-Information Tag Filtering](https://i.imgur.com/u9WBQQG.gif)
 
-## Apply to PSWriteLog
+## Debug PSWriteLog (or Your Application)
 
 In *PSWriteLog* every `Write-Information` that I use, [bypasses the the log](#bypassing-write-log).
+This means that my `Write-Information` calls *should* never end up in your log file.
 They also have two tags:
 
 - `VertigoRay\PSWriteLog`
