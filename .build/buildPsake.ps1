@@ -186,10 +186,10 @@ task Build -Depends BuildManifest {
     Move-Item -LiteralPath $compress.ArchiveFileName -Destination ([IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', 'dev.7z')) -Force
 
     if ($env:CI -and $env:APPVEYOR) {
-        Write-Host ('[PSAKE Build] Push-AppveyorArtifact FileName: {0}' -f $compress.ArchiveFileName) -ForegroundColor 'DarkMagenta'
-        $newFileName = '{0}.{1}.7z' -f ([IO.FileInfo] $compress.ArchiveFileName).BaseName, $env:APPVEYOR_BUILD_VERSION
+        Write-Host ('[PSAKE Build] Push-AppveyorArtifact FileName: {0}' -f ([IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', 'dev.7z'))) -ForegroundColor 'DarkMagenta'
+        $newFileName = '{0}.{1}.7z' -f ([IO.FileInfo] ([IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', 'dev.7z'))).BaseName, $env:APPVEYOR_BUILD_VERSION
         Write-Host ('[PSAKE Build] Push-AppveyorArtifact NewFileName: {0}' -f $newFileName) -ForegroundColor 'DarkMagenta'
-        Push-AppveyorArtifact $compress.ArchiveFileName -FileName $newFileName
+        Push-AppveyorArtifact ([IO.Path]::Combine($script:psScriptRootParent.FullName, 'dev', 'dev.7z')) -FileName $newFileName
     }
 
     $compress = @{
