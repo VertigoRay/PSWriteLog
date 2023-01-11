@@ -5,4 +5,4 @@
 
     Just see if we have the latest version of PSWriteLog installed.
 #>
-(Get-Module 'PSWriteLog' -ListAvailable).Version -eq (Find-Module 'PSWriteLog' -ErrorAction 'Ignore').Version
+(Get-Module 'PSWriteLog' -ListAvailable).Version -contains (Find-Module 'PSWriteLog' -ErrorAction 'Ignore').Version

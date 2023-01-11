@@ -22,6 +22,10 @@
 #Requires -RunAsAdministrator
 [CmdletBinding()]
 param (
+    [Parameter(HelpMessage = 'DO NOT CHANGE THIS. MECM always sends "the expected compliant value" to remediation scripts allowing you to use the same script for remediation and detection scripts. In my case, I use a boolean detection.', Position = 0)]
+    [bool]
+    $IsRemediation = $false,
+
     [Parameter(HelpMessage = 'Set the version that we started using PSWriteLog here. We know none of our scripts will use anything older than this.')]
     [version]
     $MinimumVersionRequired = '2023.1.10.23208',
@@ -30,6 +34,15 @@ param (
     [int]
     $DaysAfterUnusedVersionAreUninstalled = 90
 )
+
+Start-Transcript -LiteralPath ([IO.Path]::Combine($env:SystemRoot, 'Logs', 'PSWriteLog-Remediation.log')) -IncludeInvocationHeader
+
+[hashtable] $versionInstalled = @{
+    LiteralPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\VertigoRay\PSWriteLog\VersionsUsed'
+    Name = $MinimumVersionRequired
+    Value = (Get-Date -Format 'yyyy-MM-dd' | Get-Date -Format 'O') # 2023-01-08T00:00:00.0000000
+    Force = $true
+}
 
 [hashtable] $versionInstalled = @{
     LiteralPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\VertigoRay\PSWriteLog\VersionsUsed'
@@ -56,7 +69,9 @@ if (Get-Module 'PSWriteLog' -ListAvailable) {
 
     # Cleanup Old Versions
     Get-Module 'PSWriteLog' -ListAvailable | Foreach-Object {
+        Write-Information ('[REMEDIATION] # Checking Version: {0}' -f $_.Version)
         $dateInstalled = (Get-ItemProperty -LiteralPath $versionInstalled.LiteralPath -Name $_.Version -ErrorAction 'Ignore').($_.Version) -as [datetime]
+        Write-Verbose ('[REMEDIATION] Date: {0}' -f $dateInstalled)
         if ($dateInstalled) {
             if ($dateInstalled -lt (Get-Date).AddDays(-$DaysAfterUnusedVersionAreUninstalled)) {
                 # If it has gone unused for longer than desired
@@ -92,3 +107,5 @@ if (Get-Module 'PSWriteLog' -ListAvailable) {
         & $registerVersion $versionInstalled
     }
 }
+
+Stop-Transcript
