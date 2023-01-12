@@ -31,7 +31,7 @@ Write-Host 'Hello World!'
 **I love how clean and simple that is!**
 However, [the `#Requires` statement will terminate](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_requires?view=powershell-5.1#-modules-module-name--hashtable) if you don't have *PSWriteLog* installed.
 Since we're not introducing any new functions, *PSWriteLog* shouldn't be required to *just run the script*.
-For more explanation about his example, [check out the wiki](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-w-requires)!
+For more explanation about his example, [check out the wiki](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-with-requires)!
 
 To ensure there are no errors if you share your script with someone that doesn't have *PSWriteLog* installed, [you will want to use `Import-Module`](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-w-import-module).
 
