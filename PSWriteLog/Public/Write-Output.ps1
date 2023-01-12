@@ -8,7 +8,11 @@ function global:Write-Output {
         ${InputObject},
 
         [switch]
-        ${NoEnumerate})
+        ${NoEnumerate},
+
+        [switch]
+        $Log
+    )
 
     begin
     {
@@ -41,7 +45,7 @@ function global:Write-Output {
 
     process
     {
-        if ((Get-Command 'Write-Log' -ErrorAction 'Ignore') -and ($VerbosePreference -ine 'SilentlyContinue')) {
+        if ((Get-Command 'Write-Log' -ErrorAction 'Ignore') -and $Log.IsPresent) {
             Write-Log @writeLog -Message ($InputObject | Out-String)
         }
 

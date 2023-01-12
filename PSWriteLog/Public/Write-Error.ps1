@@ -49,7 +49,11 @@ function global:Write-Error {
 
         [Alias('TargetType')]
         [string]
-        ${CategoryTargetType})
+        ${CategoryTargetType},
+
+        [switch]
+        $Silent
+    )
 
     begin
     {
@@ -65,18 +69,20 @@ function global:Write-Error {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        try {
-            $outBuffer = $null
-            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-            {
-                $PSBoundParameters['OutBuffer'] = 1
+        if (-not $Silent) {
+            try {
+                $outBuffer = $null
+                if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
+                {
+                    $PSBoundParameters['OutBuffer'] = 1
+                }
+                $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Error', [System.Management.Automation.CommandTypes]::Cmdlet)
+                $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+                $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
+                $steppablePipeline.Begin($PSCmdlet)
+            } catch {
+                throw
             }
-            $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Error', [System.Management.Automation.CommandTypes]::Cmdlet)
-            $scriptCmd = {& $wrappedCmd @PSBoundParameters }
-            $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
-            $steppablePipeline.Begin($PSCmdlet)
-        } catch {
-            throw
         }
     }
 
@@ -111,22 +117,24 @@ function global:Write-Error {
             Write-Log @writeLog -Message ($msg -join ' ') -ErrorAction 'Stop'
         }
 
-        try {
-            $steppablePipeline.Process($_)
-        } catch {
-            throw
+        if (-not $Silent) {
+            try {
+                $steppablePipeline.Process($_)
+            } catch {
+                throw
+            }
         }
     }
 
     end
     {
-        try {
-            $steppablePipeline.End()
-        } catch {
-            throw
+        if (-not $Silent) {
+            try {
+                $steppablePipeline.End()
+            } catch {
+                throw
+            }
         }
-
-        Write-Verbose "Write-Error Done!"
     }
     <#
 

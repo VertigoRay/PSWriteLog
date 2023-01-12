@@ -8,7 +8,10 @@ function global:Write-Debug {
         ${Message},
 
         [switch]
-        ${NoLog}
+        $NoLog,
+
+        [switch]
+        $Silent
     )
 
     begin
@@ -25,19 +28,21 @@ function global:Write-Debug {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        try {
-            $outBuffer = $null
-            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-            {
-                $PSBoundParameters['OutBuffer'] = 1
+        if (-not $Silent) {
+            try {
+                $outBuffer = $null
+                if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
+                {
+                    $PSBoundParameters['OutBuffer'] = 1
+                }
+                $PSBoundParameters.Remove('NoLog') | Out-Null
+                $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Debug', [System.Management.Automation.CommandTypes]::Cmdlet)
+                $scriptCmd = { & $wrappedCmd @PSBoundParameters }
+                $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
+                $steppablePipeline.Begin($PSCmdlet)
+            } catch {
+                throw
             }
-            $PSBoundParameters.Remove('NoLog') | Out-Null
-            $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Debug', [System.Management.Automation.CommandTypes]::Cmdlet)
-            $scriptCmd = { & $wrappedCmd @PSBoundParameters }
-            $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
-            $steppablePipeline.Begin($PSCmdlet)
-        } catch {
-            throw
         }
     }
 
@@ -49,19 +54,23 @@ function global:Write-Debug {
             }
         }
 
-        try {
-            $steppablePipeline.Process($_)
-        } catch {
-            throw
+        if (-not $Silent) {
+            try {
+                $steppablePipeline.Process($_)
+            } catch {
+                throw
+            }
         }
     }
 
     end
     {
-        try {
-            $steppablePipeline.End()
-        } catch {
-            throw
+        if (-not $Silent) {
+            try {
+                $steppablePipeline.End()
+            } catch {
+                throw
+            }
         }
     }
     <#

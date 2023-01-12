@@ -11,17 +11,47 @@ Just configure the log location (or don't) and start logging with your standard 
 
 - [Quick Start](#quick-start)
 - [Description](#description)
-- [Bypassing Write-Log](#bypassing-write-log)
-- [Debug with Write-Information](#debug-with-write-information)
+  - [Proxy Functions](#proxy-functions)
+    - [`Write-Debug`](#write-debug)
+    - [`Write-Error`](#write-error)
+    - [`Write-Host`](#write-host)
+    - [`Write-Information`](#write-information)
+    - [`Write-Output`](#write-output)
+    - [`Write-Progress`](#write-progress)
+    - [`Write-Verbose`](#write-verbose)
+    - [`Write-Warning`](#write-warning)
+- [Parameters](#parameters)
+  - [ContinueOnError](#continueonerror)
+  - [DisableLogging](#disablelogging)
+  - [FilePath](#filepath)
+  - [IncludeInvocationHeader](#includeinvocationheader)
+  - [LogType](#logtype)
+  - [MaxLogFileSizeMB](#maxlogfilesizemb)
+- [Resolve-Error](#resolve-error)
+- [Notes](#notes)
+  - [Bypassing Write-Log](#bypassing-write-log)
+  - [Debug with Write-Information](#debug-with-write-information)
   - [Debug PSWriteLog (or Your Application)](#debug-pswritelog-or-your-application)
 
 # Quick Start
 
-Before you do anything, [install PSWriteLog](https://www.powershellgallery.com/packages/PSWriteLog).
+Before you do anything, [install *PSWriteLog*](https://www.powershellgallery.com/packages/PSWriteLog).
 Create a new script, mine will be called `foo.ps1` and will contain the following lines:
 
 ```powershell
 #Requires -Modules PSWriteLog
+Write-Host 'Hello World!'
+```
+
+**I love how clean and simple that is!**
+However, [the `#Requires` statement will terminate](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_requires?view=powershell-5.1#-modules-module-name--hashtable) if you don't have *PSWriteLog* installed.
+Since we're not introducing any new functions, *PSWriteLog* shouldn't be required to *just run the script*.
+To ensure there are no errors if you share your script with someone that doesn't have *PSWriteLog* installed:
+
+```powershell
+if (Get-Module 'PSWriteLog' -ListAvailable) {
+    Import-Module PSWriteLog
+}
 Write-Host 'Hello World!'
 ```
 
@@ -55,30 +85,192 @@ Instead, we've created [proxy functions](https://learn.microsoft.com/en-us/dotne
 These proxy functions keep the original functionality of the function intact, while also sending the outputted message to the `Write-Log` function.
 By default, `Write-Log` will write messages to a log file in [CMTrace](https://learn.microsoft.com/en-us/mem/configmgr/core/support/cmtrace) compatible format, but Legacy (plain-text) file format is also available.
 To configure *PSWriteLog*, what you need to do is change the default actions of the `Write-Log` parameters.
-You can specify default parameters using the built-in [`$PSDefaultParameterValues`](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-5.1) variable. Here's an example of specifying the Log file path and log type globally:
+You can specify default parameters using the built-in [`$PSDefaultParameterValues`](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-5.1) variable.
+Here's an example of specifying the Log file path and log type globally:
 
 ```powershell
 $PSDefaultParameterValues.Add('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyApp.log")
 $PSDefaultParameterValues.Add('Write-Log:LogType', 'Legacy')
 ```
 
-These are the proxy functions that are imported:
+## Proxy Functions
 
-- `Write-Debug` (Log dependent on `$DebugPreference`)
-- `Write-Error`
-- `Write-Host`
-- `Write-Information` (Log dependent on `$InformationPreference`; PowerShell 5.0+)
-- `Write-Output` (Log dependent on `$VerbosePreference`)
-- `Write-Progress`
-- `Write-Verbose` (Log dependent on `$VerbosePreference`)
-- `Write-Warning` (Log dependent on `$WarningPreference`)
-
-Importing the above functions will log anything sent to those proxy functions while keeping the original funtionality of those functions in tact.
-Keep in mind, that verbose messaging will only be logged if it would have been outputted to the screen.
+The following proxy functions will log anything sent to those proxy functions while keeping the original funtionality of those functions in tact.
+Keep in mind, that some messaging will only be logged if it would have been outputted to the screen.
 This is configured with the [Preference Variables](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-5.1).
-So, if you want to see verbose messages, be sure to set `$VerbosePreference` to `continue`.
+So, if you want to see verbose messages, be sure to set `$VerbosePreference` to `Continue`.
 
-# Bypassing Write-Log
+> ⚠: ***Do not* get in the habit of using `-Silent` or `-Log` parameters on function calls.**
+> The point of *PSWriteLog* is that the script can be run on a system without *PSWriteFunction* installed without causing issues.
+> Adding those parameters to a function call, will cause `a parameter cannot be found that matches parameter name 'Silent'` error.
+> However, using `$PSDefaultParameterValues` to define parameters that do not exist are not an issue with PowerShell; even with *strict mode* enabled.
+
+### `Write-Debug`
+
+- Logging requires `$DebugPreference` to *not be* set to `SilentlyContinue`.
+- Prevent output to console: `$PSDefaultParameterValues.Add('Write-Debug:Silent', $true)`; *do not* get in the habit of doing `Write-Debug -Silent`.
+- If you look at the code, you'll notice a `NoLog` parameter; this is for internal use to prevent looping. *Don't use it!*
+
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+
+### `Write-Error`
+
+- Prevent output to console: `$PSDefaultParameterValues.Add('Write-Error:Silent', $true)`; *do not* get in the habit of doing `Write-Error -Silent`.
+
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+
+### `Write-Host`
+
+- Prevent output to console: `$PSDefaultParameterValues.Add('Write-Host:Silent', $true)`; *do not* get in the habit of doing `Write-Host -Silent`.
+
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+
+### `Write-Information`
+
+- Logging requires `$InformationPreference`; PowerShell 5.0+ to *not be* set to `SilentlyContinue`.
+- Prevent output to console: `$PSDefaultParameterValues.Add('Write-Information:Silent', $true)`; *do not* get in the habit of doing `Write-Information -Silent`.
+
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+
+### `Write-Output`
+
+- Logging requires `$PSDefaultParameterValues.Add('Write-Output:Log', $true)`; *do not* get in the habit of doing `Write-Output -Log`.
+
+> ⚠: ***Do not* get in the habit of using `-Log` parameters on function calls.**
+
+### `Write-Progress`
+
+- We try to capture all of the progress information.
+
+### `Write-Verbose`
+
+- Logging requires `$VerbosePreference` to *not be* set to `SilentlyContinue`.
+- Prevent output to console: `$PSDefaultParameterValues.Add('Write-Verbose:Silent', $true)`; *do not* get in the habit of doing `Write-Verbose -Silent`.
+
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+
+### `Write-Warning`
+
+- Logging requires `$WarningPreference` to *not be* set to `SilentlyContinue`.
+- Prevent output to console: `$PSDefaultParameterValues.Add('Write-Warning:Silent', $true)`; *do not* get in the habit of doing `Write-Warning -Silent`.
+
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+
+# Parameters
+
+The core function is a hidden `Write-Log` function that is called by all the [proxy functions](#proxy-functions) above.
+Since it's a hidden function, you use [`$PSDefaultParameterValues`](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-5.1) to customize functionality.
+
+## ContinueOnError
+
+- Type: `[switch]`
+
+If there's an error writing to the log file, a terminating error will be thrown.
+Unless of course, you've specified this switch.
+
+```powershell
+$PSDefaultParameterValues.Set_Item('Write-Log:ContinueOnError', $true)
+```
+
+## DisableLogging
+
+- Type: `[switch]`
+
+If there's a reason to toggle-off all logging for a bit, this is your mechanism.
+
+```powershell
+$PSDefaultParameterValues.Set_Item('Write-Log:DisableLogging', $true)
+Get-AllSuperSecretStuff -Verbose
+$PSDefaultParameterValues.Set_Item('Write-Log:DisableLogging', $false)
+```
+
+## FilePath
+
+- Type: `[IO.FileInfo]`
+- Default: *Something like: `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`*
+    ```powershell
+    [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f @(
+        $PSVersionTable.PSEdition
+        $PSVersionTable.PSVersion
+        $MyInvocation.CommandOrigin
+    ))
+    ```
+
+```powershell
+$PSDefaultParameterValues.Set_Item('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyApp.log")
+```
+
+## IncludeInvocationHeader
+
+- Type: `[switch]`
+
+If you're familiar with `Start-Transcript -IncludeInvocationHeader` then you already know what this does.
+It logs some environment information before the next `Write-Log` call.
+
+```powershell
+$PSDefaultParameterValues.Set_Item('Write-Log:IncludeInvocationHeader', $true)
+```
+
+We set `$env:PSWriteLogIncludedInvocationHeader` to `True` when it's written to ensure it's only done once per session.
+If you want it done again, just clear out that environment variable:
+
+```powershell
+$env:PSWriteLogIncludedInvocationHeader = $null
+```
+
+## LogType
+
+- Type: `[string]`
+- Default: `CMTrace`
+- Options: `CMTrace`, `Legacy`
+
+Define the format for log messages.
+Will write messages to a log file in [`CMTrace`](https://learn.microsoft.com/en-us/mem/configmgr/core/support/cmtrace) compatible format, but `Legacy` (plain-text) file format is also available.
+
+```powershell
+$PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
+```
+
+## MaxLogFileSizeMB
+
+- Type: `[decimal]`
+- Default: `10.0`
+
+Log rotations are built in.
+Archived logs are renamed from a `.log` extension to a `.lo_` extension.
+If a `.lo_` already exists, it'll be deleted.
+
+```powershell
+$PSDefaultParameterValues.Set_Item('Write-Log:MaxLogFileSizeMB', 3.14)
+```
+
+# Resolve-Error
+
+**So ... remember when I said that we're not introducing any additional functions?**
+I lied.
+There's one.
+However, it's very useful ... I swear!
+I still believe that *PSWriteLog* shouldn't be required to *just run the script*.
+So, here's how you can use `Resolve-Error`:
+
+```powershell
+try {
+    # Do something that throws an error ...
+} catch {
+    $resolvedError = if (Get-Command 'Resolve-Error' -ErrorAction 'Ignore') {
+        Resolve-Error
+    } else {
+        $_.Exception.Message
+    }
+	Write-Error ('Failed to do a thing. {0}' -f $resolvedError)
+}
+```
+
+# Notes
+
+The rest of this stuff is really beyond the scope of *PSWriteLog*, but I hope it's useful information ...
+
+## Bypassing Write-Log
 
 There may be instances when you are using *PSWriteLog* that you want to output to the screen, but not save the output to the log.
 Maybe you have sensitive data (e.g.: passwords, auth tokens, etc.) that you don't want saved to a log file.
@@ -101,7 +293,7 @@ You can then call the function and provide the source path as well:
 Microsoft.PowerShell.Utility\Write-Host "Password: $password"
 ```
 
-# Debug with Write-Information
+## Debug with Write-Information
 
 I like to use `Write-Information` to debug because I send the messages to a variable and filter them later.
 Instead of scrolling through a ton of `Verbose` or `Debug` output, I can just filter down to the messages that came tagged the way I was expecting.

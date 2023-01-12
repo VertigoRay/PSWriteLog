@@ -58,4 +58,5 @@ function Write-InvocationHeader {
     $tmp.FullName | Remove-Item -ErrorAction 'SilentlyContinue' -Force
 
     Write-Log -Message $header
+    $env:PSWriteLogIncludedInvocationHeader = $true
 }

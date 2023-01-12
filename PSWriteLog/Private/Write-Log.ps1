@@ -85,11 +85,18 @@ function global:Write-Log {
 
         [Parameter(Mandatory = $false)]
         [switch]
-        $DisableLogging
+        $DisableLogging,
+
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $IncludeInvocationHeader
     )
 
     begin {
         # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] BoundParameters: $($MyInvocation.BoundParameters | Out-String)" -Tags 'VertigoRay\PSWriteLog','Write-Log'
+        if ($IncludeInvocationHeader.IsPresent -and -Not $env:PSWriteLogIncludedInvocationHeader) {
+            Write-InvocationHeader
+        }
 
         # Get the name of this function
         [string] $CmdletName = $PSCmdlet.MyInvocation.MyCommand.Name
