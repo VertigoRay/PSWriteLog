@@ -90,7 +90,7 @@ Keep in mind, that some messaging will only be logged if it would have been outp
 This is configured with the [Preference Variables](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-5.1).
 So, if you want to see verbose messages, be sure to set `$VerbosePreference` to `Continue`.
 
-> ⚠: ***Do not* get in the habit of using `-Silent` or `-Log` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` or `-Log` parameters on proxy function calls.**
 > The point of *PSWriteLog* is that the script can be run on a system without *PSWriteFunction* installed without causing issues.
 > Adding those parameters to a function call, will cause `a parameter cannot be found that matches parameter name 'Silent'` error.
 > However, using `$PSDefaultParameterValues` to define parameters that do not exist are not an issue with PowerShell; even with *strict mode* enabled.
@@ -101,32 +101,32 @@ So, if you want to see verbose messages, be sure to set `$VerbosePreference` to 
 - Prevent output to console: `$PSDefaultParameterValues.Add('Write-Debug:Silent', $true)`; *do not* get in the habit of doing `Write-Debug -Silent`.
 - If you look at the code, you'll notice a `NoLog` parameter; this is for internal use to prevent looping. *Don't use it!*
 
-> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on proxy function calls.**
 
 ### `Write-Error`
 
 - Prevent output to console: `$PSDefaultParameterValues.Add('Write-Error:Silent', $true)`; *do not* get in the habit of doing `Write-Error -Silent`.
 
-> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on proxy function calls.**
 
 ### `Write-Host`
 
 - Prevent output to console: `$PSDefaultParameterValues.Add('Write-Host:Silent', $true)`; *do not* get in the habit of doing `Write-Host -Silent`.
 
-> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on proxy function calls.**
 
 ### `Write-Information`
 
 - Logging requires `$InformationPreference`; PowerShell 5.0+ to *not be* set to `SilentlyContinue`.
 - Prevent output to console: `$PSDefaultParameterValues.Add('Write-Information:Silent', $true)`; *do not* get in the habit of doing `Write-Information -Silent`.
 
-> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on proxy function calls.**
 
 ### `Write-Output`
 
 - Logging requires `$PSDefaultParameterValues.Add('Write-Output:Log', $true)`; *do not* get in the habit of doing `Write-Output -Log`.
 
-> ⚠: ***Do not* get in the habit of using `-Log` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Log` parameters on proxy function calls.**
 
 ### `Write-Progress`
 
@@ -137,14 +137,14 @@ So, if you want to see verbose messages, be sure to set `$VerbosePreference` to 
 - Logging requires `$VerbosePreference` to *not be* set to `SilentlyContinue`.
 - Prevent output to console: `$PSDefaultParameterValues.Add('Write-Verbose:Silent', $true)`; *do not* get in the habit of doing `Write-Verbose -Silent`.
 
-> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on proxy function calls.**
 
 ### `Write-Warning`
 
 - Logging requires `$WarningPreference` to *not be* set to `SilentlyContinue`.
 - Prevent output to console: `$PSDefaultParameterValues.Add('Write-Warning:Silent', $true)`; *do not* get in the habit of doing `Write-Warning -Silent`.
 
-> ⚠: ***Do not* get in the habit of using `-Silent` parameters on function calls.**
+> ⚠: ***Do not* get in the habit of using `-Silent` parameters on proxy function calls.**
 
 # Parameters
 
@@ -179,7 +179,7 @@ $PSDefaultParameterValues.Set_Item('Write-Log:DisableLogging', $false)
 - Type: `[IO.FileInfo]`
 - Default: *Something like: `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`*
 
-To get the exact path, run this:
+The *default path* is created with this command:
 
 ```powershell
 [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f @(
@@ -189,10 +189,10 @@ To get the exact path, run this:
 )))
 ```
 
-> ℹ: Your `$MyInvocation.CommandOrigin` might vary between a few things, such as `Internal` or `Runspace`.
+> ℹ: The *default file* name will vary depending on your environment.
+> Running the above command may yield slightly inaccurate results because `$MyInvocation.CommandOrigin` could vary between a few things, such as `Internal` or `Runspace`.
 > If you want to know exactly where your log file is, configure it ...
 
-The default file name will vary depending on your environment.
 Change the location by providing the full path to the log file.
 
 ```powershell
@@ -235,7 +235,7 @@ $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
 - Type: `[decimal]`
 - Default: `10.0`
 
-Log rotations are built in.
+Log rotations are built-in.
 Archived logs are renamed from a `.log` extension to a `.lo_` extension.
 If a `.lo_` already exists, it'll be deleted.
 
