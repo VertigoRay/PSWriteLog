@@ -57,19 +57,9 @@ Write-Host 'Hello World!'
 
 > ℹ: You'll notice that the `Hello World!` message did output to host as expected.
 
-Because nothing was configured, you can find the log in the default location:
+Because nothing was configured, you can find the log in the [default location](#filepath):
 
 - `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`
-
-> ℹ: The default file name will vary depending on your environment, but it can be gleaned with this command:
->
-> ```powershell
-> [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f @(
->     $PSVersionTable.PSEdition,
->     $PSVersionTable.PSVersion,
->     $MyInvocation.CommandOrigin
-> )))
-> ```
 
 If you open that file, you can see that the log appears in *CMTrace* format:
 
@@ -195,6 +185,9 @@ $PSDefaultParameterValues.Set_Item('Write-Log:DisableLogging', $false)
         $MyInvocation.CommandOrigin
     ))
     ```
+
+The default file name will vary depending on your environment.
+Change the location by providing the full path to the log file.
 
 ```powershell
 $PSDefaultParameterValues.Set_Item('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyApp.log")
