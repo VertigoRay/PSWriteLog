@@ -6,7 +6,7 @@
 [![Codacy Security Scan](https://github.com/VertigoRay/PSWriteLog/actions/workflows/codacy.yml/badge.svg)](https://github.com/VertigoRay/PSWriteLog/actions/workflows/codacy.yml)
 [![DevSkim](https://github.com/VertigoRay/PSWriteLog/actions/workflows/devskim.yml/badge.svg)](https://github.com/VertigoRay/PSWriteLog/actions/workflows/devskim.yml)
 
-![PSWriteLog](https://t.ly/wrBQ) is a tool to standardize logging without the need to use new function calls in your PowerShell scripts.
+![PSWriteLog](https://tinyurl.com/59jee5tf) is a tool to standardize logging without the need to use new function calls in your PowerShell scripts.
 Just configure the log location (or don't) and start logging with your standard `Write` functions.
 
 - [Quick Start](#quick-start)
