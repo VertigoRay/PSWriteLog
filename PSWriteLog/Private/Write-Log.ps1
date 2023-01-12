@@ -67,34 +67,34 @@ function global:Write-Log {
         [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('CMTrace', 'Legacy')]
         [string]
-        $LogType = 'CMTrace',
+        $LogType = $(if ($env:PSWriteLogType) { $env:PSWriteLogType } else { 'CMTrace' }),
 
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNullorEmpty()]
         [IO.FileInfo]
-        $FilePath = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin)),
+        $FilePath = $(if ($env:PSWriteLogFilePath) { $env:PSWriteLogFilePath } else { [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin)) }),
 
         [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNullorEmpty()]
         [decimal]
-        $MaxLogFileSizeMB = 10,
+        $MaxLogFileSizeMB = $(if ($env:PSWriteLogMaxLogFileSizeMB) { $env:PSWriteLogMaxLogFileSizeMB -as [decimal] } else { 10 }),
 
         [Parameter(Mandatory = $false)]
-        [switch]
-        $ContinueOnError,
+        [bool]
+        $ContinueOnError = $(if ($env:PSWriteLogContinueOnError) { $env:PSWriteLogContinueOnError -as [bool] } else { $false }),
 
         [Parameter(Mandatory = $false)]
-        [switch]
-        $DisableLogging,
+        [bool]
+        $DisableLogging = $(if ($env:PSWriteLogDisableLogging) { $env:PSWriteLogDisableLogging -as [bool] } else { $false }),
 
         [Parameter(Mandatory = $false)]
-        [switch]
-        $IncludeInvocationHeader
+        [bool]
+        $IncludeInvocationHeader = $(if ($env:PSWriteLogIncludeInvocationHeader) { $env:PSWriteLogIncludeInvocationHeader -as [bool] } else { $false })
     )
 
     begin {
         # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] BoundParameters: $($MyInvocation.BoundParameters | Out-String)" -Tags 'VertigoRay\PSWriteLog','Write-Log'
-        if ($IncludeInvocationHeader.IsPresent -and -Not $env:PSWriteLogIncludedInvocationHeader) {
+        if ($IncludeInvocationHeader) {
             Write-InvocationHeader
         }
 

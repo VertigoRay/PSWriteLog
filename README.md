@@ -45,12 +45,12 @@ Instead, we've created [proxy functions](https://learn.microsoft.com/en-us/dotne
 These proxy functions keep the original functionality of the function intact, while also sending the outputted message to the `Write-Log` function.
 By default, `Write-Log` will write messages to a log file in [CMTrace](https://learn.microsoft.com/en-us/mem/configmgr/core/support/cmtrace) compatible format, but Legacy (plain-text) file format is also available.
 To configure *PSWriteLog*, what you need to do is change the default actions of the `Write-Log` parameters.
-You can specify default parameters using the built-in [`$PSDefaultParameterValues`](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-5.1) variable.
+You can specify default parameters using environment variables.
 Here's an example of specifying the Log file path and log type globally:
 
 ```powershell
-$PSDefaultParameterValues.Add('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyApp.log")
-$PSDefaultParameterValues.Add('Write-Log:LogType', 'Legacy')
+$env:PSWriteLogFilePath = "${env:SystemRoot}\Logs\MyApp.log"
+$env:PSWriteLogType = 'Legacy'
 ```
 
 > ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
@@ -119,7 +119,7 @@ For me, when I'm working on *PSWriteLog* and I want to see just those messages, 
 $InformationPreference = 'Continue'
 $PSDefaultParameterValues.Set_Item('Write-Log:InformationVariable', 'foo')
 
-Write-Host 'Testing a thing'
+Write-Host 'Testing a thing' -InformationVariable 'foo'
 $foo | ?{ $_.Tags -eq 'Write-Log' }
 ```
 
