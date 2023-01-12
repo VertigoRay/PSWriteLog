@@ -178,13 +178,19 @@ $PSDefaultParameterValues.Set_Item('Write-Log:DisableLogging', $false)
 
 - Type: `[IO.FileInfo]`
 - Default: *Something like: `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`*
-    ```powershell
-    [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f @(
-        $PSVersionTable.PSEdition
-        $PSVersionTable.PSVersion
-        $MyInvocation.CommandOrigin
-    ))
-    ```
+
+To get the exact path, run this:
+
+```powershell
+[IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f @(
+    $PSVersionTable.PSEdition
+    $PSVersionTable.PSVersion
+    $MyInvocation.CommandOrigin
+)))
+```
+
+> ℹ: Your `$MyInvocation.CommandOrigin` might vary between a few things, such as `Internal` or `Runspace`.
+> If you want to know exactly where your log file is, configure it ...
 
 The default file name will vary depending on your environment.
 Change the location by providing the full path to the log file.
