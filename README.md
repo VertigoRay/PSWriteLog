@@ -16,7 +16,7 @@ Just configure the log location (or don't) and start logging with your standard 
   - [Debug with Write-Information](#debug-with-write-information)
   - [Debug PSWriteLog (or Your Application)](#debug-pswritelog-or-your-application)
 
-> ℹ: For more details, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki)!
+> ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
 
 # Quick Start
 
@@ -31,28 +31,11 @@ Write-Host 'Hello World!'
 **I love how clean and simple that is!**
 However, [the `#Requires` statement will terminate](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_requires?view=powershell-5.1#-modules-module-name--hashtable) if you don't have *PSWriteLog* installed.
 Since we're not introducing any new functions, *PSWriteLog* shouldn't be required to *just run the script*.
-To ensure there are no errors if you share your script with someone that doesn't have *PSWriteLog* installed:
+For more explanation about his example, [check out the wiki](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-w-requires)!
 
-```powershell
-if (Get-Module 'PSWriteLog' -ListAvailable) {
-    Import-Module PSWriteLog
-}
-Write-Host 'Hello World!'
-```
+To ensure there are no errors if you share your script with someone that doesn't have *PSWriteLog* installed, [you will want to use `Import-Module`](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-w-import-module).
 
-> ℹ: You'll notice that the `Hello World!` message did output to host as expected.
-
-Because nothing was configured, you can find the log in the [default location](#filepath):
-
-- `%TEMP%\PowerShell Desktop 5.1.19041.1682 Internal.log`
-
-If you open that file, you can see that the log appears in *CMTrace* format:
-
-```xml
-<![LOG[Info: Hello World!]LOG]!><time="22:32:05.575-360" date="01-05-2023" component="foo.ps1 {}" context="TEST\VertigoRay" type="6" thread="15" file="foo.ps1:2">
-```
-
-> ℹ: For more details, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki)!
+> ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
 
 # Description
 
@@ -70,7 +53,7 @@ $PSDefaultParameterValues.Add('Write-Log:FilePath', "${env:SystemRoot}\Logs\MyAp
 $PSDefaultParameterValues.Add('Write-Log:LogType', 'Legacy')
 ```
 
-> ℹ: For more details, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki)!
+> ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
 
 # Notes
 
