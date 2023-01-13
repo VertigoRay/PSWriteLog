@@ -21,7 +21,7 @@
         SerializationVersion: 1.1.0.1
         **********************
 #>
-function Write-InvocationHeader {
+function Get-InvocationHeader {
     [CmdletBinding()]
     param()
 
@@ -56,7 +56,7 @@ function Write-InvocationHeader {
     }
 
     $tmp.FullName | Remove-Item -ErrorAction 'SilentlyContinue' -Force
-
-    Write-Log -Message $header
     $env:PSWriteLogIncludeInvocationHeader = $null
+
+    return $header
 }

@@ -15,10 +15,7 @@ function global:Write-Host {
         ${ForegroundColor},
 
         [System.ConsoleColor]
-        ${BackgroundColor},
-
-        [switch]
-        $Silent
+        ${BackgroundColor}
     )
 
     begin
@@ -34,7 +31,7 @@ function global:Write-Host {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogHostSilent -as [bool])) {
             try {
                 $outBuffer = $null
                 if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
@@ -57,7 +54,7 @@ function global:Write-Host {
             Write-Log @writeLog -Message $Object
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogHostSilent -as [bool])) {
             try {
                 $steppablePipeline.Process($_)
             } catch {
@@ -68,7 +65,7 @@ function global:Write-Host {
 
     end
     {
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogHostSilent -as [bool])) {
             try {
                 $steppablePipeline.End()
             } catch {

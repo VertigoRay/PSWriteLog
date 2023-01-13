@@ -49,10 +49,7 @@ function global:Write-Error {
 
         [Alias('TargetType')]
         [string]
-        ${CategoryTargetType},
-
-        [switch]
-        $Silent
+        ${CategoryTargetType}
     )
 
     begin
@@ -69,7 +66,7 @@ function global:Write-Error {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogErrorSilent -as [bool])) {
             try {
                 $outBuffer = $null
                 if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
@@ -117,7 +114,7 @@ function global:Write-Error {
             Write-Log @writeLog -Message ($msg -join ' ') -ErrorAction 'Stop'
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogErrorSilent -as [bool])) {
             try {
                 $steppablePipeline.Process($_)
             } catch {
@@ -128,7 +125,7 @@ function global:Write-Error {
 
     end
     {
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogErrorSilent -as [bool])) {
             try {
                 $steppablePipeline.End()
             } catch {

@@ -8,10 +8,7 @@ function global:Write-Information {
 
         [Parameter(Position=1)]
         [string[]]
-        ${Tags},
-
-        [switch]
-        $Silent
+        ${Tags}
     )
 
     begin
@@ -27,7 +24,7 @@ function global:Write-Information {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogInformationSilent -as [bool])) {
             try {
                 $outBuffer = $null
                 if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
@@ -48,13 +45,13 @@ function global:Write-Information {
     {
         if ((Get-Command 'Write-Log' -ErrorAction 'Ignore') -and ($InformationPreference -ine 'SilentlyContinue')) {
             if ($Tags.isPresent) {
-                Write-Log @writeLog -Message "$MessageData {$($Tags -join ',')}"
+                Write-Log @writeLog -Message "{$($Tags -join ',')} $MessageData"
             } else {
                 Write-Log @writeLog -Message "$MessageData"
             }
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogInformationSilent -as [bool])) {
             try {
                 $steppablePipeline.Process($_)
             } catch {
@@ -65,7 +62,7 @@ function global:Write-Information {
 
     end
     {
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogInformationSilent -as [bool])) {
             try {
                 $steppablePipeline.End()
             } catch {

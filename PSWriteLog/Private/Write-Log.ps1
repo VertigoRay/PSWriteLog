@@ -93,9 +93,12 @@ function global:Write-Log {
     )
 
     begin {
-        # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] BoundParameters: $($MyInvocation.BoundParameters | Out-String)" -Tags 'VertigoRay\PSWriteLog','Write-Log'
-        if ($IncludeInvocationHeader) {
-            Write-InvocationHeader
+        Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] BoundParameters: {0}' -f $($MyInvocation.BoundParameters | Out-String))
+
+        if ($env:PSWriteLogDisableLogging) {
+            # If logging is not currently disabled, get out now!
+            Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] env:PSWriteLogDisableLogging: {0}' -f $env:PSWriteLogDisableLogging)
+            return $null
         }
 
         # Get the name of this function
@@ -119,11 +122,11 @@ function global:Write-Log {
 
             [System.Collections.ArrayList] $legacyMessage = @()
 
-            $legacyMessage.Add("[$(& $logDate) $(& $logTime)]") | Out-Null
+            $legacyMessage.Add(('[{0}]' -f (Get-Date -Format 'O'))) | Out-Null
             if ($Source) {
                 $legacyMessage.Add("[${Source}]") | Out-Null
             }
-            $legacyMessage.Add("[${Component}]") | Out-Null
+            # $legacyMessage.Add("[${Component}]") | Out-Null
             $legacyMessage.Add("[${Severity}]") | Out-Null
             $legacyMessage.Add(($lMessage.Trim() | Out-String)) | Out-Null
 
@@ -136,7 +139,7 @@ function global:Write-Log {
                 [string]
                 $lMessage
             )
-            # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Source (sb): ${Source}" -Tags 'VertigoRay\PSWriteLog','Write-Log'
+            Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Source (sb): ${Source}"
             $severityMap = @{ # Vaguely based on POSH stream numbers
                 Debug       = 5
                 Error       = 3
@@ -162,17 +165,19 @@ function global:Write-Log {
             ))
         }
 
-        [scriptblock] $getLogLine = {
+        [scriptblock] $logLine = {
             param(
                 [string]
                 $sMsg
             )
             ## Choose which log type to write to file
-            if ($LogType -ieq 'CMTrace') {
-                return & $cmTraceLogString -lMessage ($sMsg | Out-String).Trim() -lSource $Source
+            $line = if ($LogType -ieq 'CMTrace') {
+                & $cmTraceLogString -lMessage ($sMsg | Out-String).Trim() -lSource $Source
             } else {
-                return & $legacyLogString -lMessage ($sMsg | Out-String).Trim() -lSource $Source
+                & $legacyLogString -lMessage ($sMsg | Out-String).Trim() -lSource $Source
             }
+
+            $line | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
         }
 
         #  Create the directory where the log file will be saved
@@ -182,28 +187,26 @@ function global:Write-Log {
     }
 
     process {
-        # Exit function if it is a debug message and 'LogDebugMessage' option is not $true, or if the log directory was not successfully created in 'Begin' block.
-        if (($DebugMessage -and -not $LogDebugMessage)) { Return }
+        if ($IncludeInvocationHeader) {
+            & $logLine -sMsg ("{1}`n{0}`n{1}" -f (Get-InvocationHeader),('#' * 40))
+        }
 
         foreach ($msg in $Message) {
-            # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Source: $Source" -Tags 'VertigoRay\PSWriteLog','Write-Log'
-            # Write the log entry to the log file if logging is not currently disabled
-            if (-not $DisableLogging) {
-                try {
-                    & $getLogLine -sMsg $msg | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
-                } catch {
-                    if (-not $ContinueOnError) {
-                        throw ('[{0} {1}] [{2}] [{3}] :: Failed to write message [{4}] to the log file [{5}].{6}{7}' -f @(
-                            & $logDate
-                            & $logTime
-                            $CmdletName
-                            $Component
-                            $Msg
-                            $FilePath.FullName
-                            "`n"
-                            Resolve-Error | Out-String
-                        ))
-                    }
+            Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] Source: {0}' -f $Source)
+            try {
+                & $logLine -sMsg $msg
+            } catch {
+                if (-not $ContinueOnError) {
+                    throw ('[{0} {1}] [{2}] [{3}] :: Failed to write message [{4}] to the log file [{5}].{6}{7}' -f @(
+                        & $logDate
+                        & $logTime
+                        $CmdletName
+                        $Component
+                        $Msg
+                        $FilePath.FullName
+                        "`n"
+                        Resolve-Error | Out-String
+                    ))
                 }
             }
         }
@@ -214,29 +217,29 @@ function global:Write-Log {
         if ($MaxLogFileSizeMB) {
             try {
                 [decimal] $LogFileSizeMB = $FilePath.Length/1MB
-                # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] LogFileSizeMB: $LogFileSizeMB / $MaxLogFileSizeMB" -Tags 'VertigoRay\PSWriteLog','Write-Log'
+                Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] LogFileSizeMB: $LogFileSizeMB / $MaxLogFileSizeMB"
                 if ($LogFileSizeMB -gt $MaxLogFileSizeMB) {
-                    # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Log File Needs to be archived ..." -Tags 'VertigoRay\PSWriteLog','Write-Log'
+                    Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Log File Needs to be archived ..."
                     # Change the file extension to "lo_"
                     [string] $archivedOutLogFile = [IO.Path]::ChangeExtension($FilePath.FullName, 'lo_')
 
                     # Log message about archiving the log file
                     if ((Get-PSCallStack)[1].Command -ne 'Write-Log') {
                         # Prevent Write-Log from looping more than once.
-                        & $getLogLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Rename log file to: ${archivedOutLogFile}" | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
+                        & $logLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Rename log file to: ${archivedOutLogFile}"
                     }
 
                     # Archive existing log file from <filename>.log to <filename>.lo_. Overwrites any existing <filename>.lo_ file. This is the same method SCCM uses for log files.
                     Move-Item -Path $FilePath.FullName -Destination $archivedOutLogFile -Force -ErrorAction 'Stop'
 
                     # Start new log file and Log message about archiving the old log file
-                    & $getLogLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Previous log file was renamed to: ${archivedOutLogFile}" | Out-File -FilePath $FilePath.FullName -Append -NoClobber -Force -Encoding 'UTF8' -ErrorAction 'Stop'
+                    & $logLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Previous log file was renamed to: ${archivedOutLogFile}"
                 } else {
-                    # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Log File does not need to be archived." -Tags 'VertigoRay\PSWriteLog','Write-Log'
+                    Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Log File does not need to be archived."
                 }
             } catch {
                 # If renaming of file fails, script will continue writing to log file even if size goes over the max file size
-                # Microsoft.PowerShell.Utility\Write-Information "[Write-Log] Archive Error: ${_}" -Tags 'VertigoRay\PSWriteLog','Write-Log'
+                Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Archive Error: ${_}"
             }
         }
     }

@@ -5,13 +5,7 @@ function global:Write-Debug {
         [Alias('Msg')]
         [AllowEmptyString()]
         [string]
-        ${Message},
-
-        [switch]
-        $NoLog,
-
-        [switch]
-        $Silent
+        ${Message}
     )
 
     begin
@@ -28,14 +22,13 @@ function global:Write-Debug {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogDebugSilent -as [bool])) {
             try {
                 $outBuffer = $null
                 if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
                 {
                     $PSBoundParameters['OutBuffer'] = 1
                 }
-                $PSBoundParameters.Remove('NoLog') | Out-Null
                 $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Debug', [System.Management.Automation.CommandTypes]::Cmdlet)
                 $scriptCmd = { & $wrappedCmd @PSBoundParameters }
                 $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
@@ -48,13 +41,13 @@ function global:Write-Debug {
 
     process
     {
-        if (-not $NoLog.isPresent) {
+        if (-not ($env:PSWriteLogDebugNoLog -as [bool])) {
             if ((Get-Command 'Write-Log' -ErrorAction 'Ignore') -and ($DebugPreference -ine 'SilentlyContinue')) {
                 Write-Log @writeLog -Message $Message
             }
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogDebugSilent -as [bool])) {
             try {
                 $steppablePipeline.Process($_)
             } catch {
@@ -65,7 +58,7 @@ function global:Write-Debug {
 
     end
     {
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogDebugSilent -as [bool])) {
             try {
                 $steppablePipeline.End()
             } catch {

@@ -33,11 +33,7 @@ function global:Write-Progress {
         ${Completed},
 
         [int]
-        ${SourceId},
-
-        [ValidateScript({[enum]::GetValues([System.ConsoleColor]) -icontains $_})]
-        [string]
-        ${WriteHostColor}
+        ${SourceId}
     )
 
     begin
@@ -54,56 +50,58 @@ function global:Write-Progress {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        try {
-            $outBuffer = $null
-            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-            {
-                $PSBoundParameters['OutBuffer'] = 1
+        if (-not ($env:PSWriteLogProgessSilent -as [bool])) {
+            try {
+                $outBuffer = $null
+                if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
+                {
+                    $PSBoundParameters['OutBuffer'] = 1
+                }
+                $PSBoundParameters.Remove('WriteHostColor')
+                $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Progress', [System.Management.Automation.CommandTypes]::Cmdlet)
+                $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+                $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
+                $steppablePipeline.Begin($PSCmdlet)
+            } catch {
+                throw
             }
-            $PSBoundParameters.Remove('WriteHostColor')
-            $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Write-Progress', [System.Management.Automation.CommandTypes]::Cmdlet)
-            $scriptCmd = {& $wrappedCmd @PSBoundParameters }
-            $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
-            $steppablePipeline.Begin($PSCmdlet)
-        } catch {
-            throw
         }
     }
 
     process
     {
-        [System.Collections.ArrayList] $Message = @()
-        if ($PSBoundParameters.ContainsKey('ParentId')) { $Message.Add("[${ParentId}]") | Out-Null }
-        if ($PSBoundParameters.ContainsKey('Id')) { $Message.Add("[${Id}]") | Out-Null }
-        $Message.Add($Activity) | Out-Null
-        if ($PSBoundParameters.ContainsKey('PercentComplete')) { $Message.Add("${PercentComplete}%") | Out-Null }
-        if ($PSBoundParameters.ContainsKey('SecondsRemaining')) { $Message.Add("(${SecondsRemaining} Seconds Remaining)") | Out-Null }
-        $Message.Add(':') | Out-Null
-        $Message.Add($Status) | Out-Null
-        $Message.Add(':') | Out-Null
-        $Message.Add($CurrentOperation) | Out-Null
+        if (Get-Command 'Write-Log' -ErrorAction 'Ignore' -and ($ProgressPreference -ine 'SilentlyContinue')) {
+            [System.Collections.ArrayList] $Message = @()
+            if ($PSBoundParameters.ContainsKey('ParentId')) { $Message.Add("[${ParentId}]") | Out-Null }
+            if ($PSBoundParameters.ContainsKey('Id')) { $Message.Add("[${Id}]") | Out-Null }
+            $Message.Add($Activity) | Out-Null
+            if ($PSBoundParameters.ContainsKey('PercentComplete')) { $Message.Add("${PercentComplete}%") | Out-Null }
+            if ($PSBoundParameters.ContainsKey('SecondsRemaining')) { $Message.Add("(${SecondsRemaining} Seconds Remaining)") | Out-Null }
+            $Message.Add(':') | Out-Null
+            $Message.Add($Status) | Out-Null
+            $Message.Add(':') | Out-Null
+            $Message.Add($CurrentOperation) | Out-Null
 
-        if (Get-Command 'Write-Log' -ErrorAction 'Ignore') {
             Write-Log @writeLog -Message ($Message -join ' ')
         }
 
-        if ($WriteHostColor) {
-            Microsoft.PowerShell.Utility\Write-Host -ForegroundColor $WriteHostColor ($Message -join ' ')
-        }
-
-        try {
-            $steppablePipeline.Process($_)
-        } catch {
-            throw
+        if (-not ($env:PSWriteLogProgessSilent -as [bool])) {
+            try {
+                $steppablePipeline.Process($_)
+            } catch {
+                throw
+            }
         }
     }
 
     end
     {
-        try {
-            $steppablePipeline.End()
-        } catch {
-            throw
+        if (-not ($env:PSWriteLogProgessSilent -as [bool])) {
+            try {
+                $steppablePipeline.End()
+            } catch {
+                throw
+            }
         }
     }
     <#

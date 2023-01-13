@@ -5,10 +5,7 @@ function global:Write-Verbose {
         [Alias('Msg')]
         [AllowEmptyString()]
         [string]
-        ${Message},
-
-        [switch]
-        $Silent
+        ${Message}
     )
 
     begin
@@ -25,7 +22,7 @@ function global:Write-Verbose {
             'Source' = "${invoFile}:$($MyInvocation.ScriptLineNumber)";
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogVerboseSilent -as [bool])) {
             try {
                 $outBuffer = $null
                 if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
@@ -48,7 +45,7 @@ function global:Write-Verbose {
             Write-Log @writeLog -Message $Message
         }
 
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogVerboseSilent -as [bool])) {
             try {
                 $steppablePipeline.Process($_)
             } catch {
@@ -59,7 +56,7 @@ function global:Write-Verbose {
 
     end
     {
-        if (-not $Silent) {
+        if (-not ($env:PSWriteLogVerboseSilent -as [bool])) {
             try {
                 $steppablePipeline.End()
             } catch {

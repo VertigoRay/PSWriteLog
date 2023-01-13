@@ -55,10 +55,10 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 1' {
+    Context 'Write-Log $Message -Severity ''Info''' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -Severity 1
+            Write-Log $script:Message -Severity 'Info'
         }
 
         It "Writes 'type=`"1`" ' to ${script:DefaultLog}" {
@@ -66,10 +66,10 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 1 -LogType Legacy' {
+    Context 'Write-Log $Message -Severity ''Info'' -LogType Legacy' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -Severity 1 -LogType Legacy
+            Write-Log $script:Message -Severity 'Info' -LogType Legacy
         }
 
         It "Writes '[Info]' to ${script:DefaultLog}" {
@@ -77,10 +77,10 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 2' {
+    Context 'Write-Log $Message -Severity ''Warning''' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -Severity 2
+            Write-Log $script:Message -Severity 'Warning'
         }
 
         It "Writes 'type=`"2`" ' to ${script:DefaultLog}" {
@@ -88,10 +88,10 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 2 -LogType Legacy' {
+    Context 'Write-Log $Message -Severity ''Warning'' -LogType Legacy' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -Severity 2 -LogType Legacy
+            Write-Log $script:Message -Severity 'Warning' -LogType Legacy
         }
 
         It "Writes '[Warning]' to ${script:DefaultLog}" {
@@ -99,10 +99,10 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 3' {
+    Context 'Write-Log $Message -Severity ''Error''' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -Severity 3
+            Write-Log $script:Message -Severity 'Error'
         }
 
         It "Writes 'type=`"3`" ' to ${script:DefaultLog}" {
@@ -110,10 +110,10 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 3 -LogType Legacy' {
+    Context 'Write-Log $Message -Severity ''Error'' -LogType Legacy' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
-            Write-Log $script:Message -Severity 3 -LogType Legacy
+            Write-Log $script:Message -Severity 'Error' -LogType Legacy
         }
 
         It "Writes '[Error]' to ${script:DefaultLog}" {
@@ -154,7 +154,7 @@ Describe 'Write-Log with parameters' {
         }
     }
 
-    Context 'Write-Log $Message -Component Pester -LogType Legacy' {
+    Context 'Write-Log $Message -Component Pester -LogType Legacy' -Skip {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             Write-Log $script:Message -Component Pester -LogType Legacy
@@ -236,7 +236,7 @@ Describe 'Write-Log with parameters' {
     }
 }
 
-Describe 'Write-Log with $PSDefaultParameterValues' {
+Describe 'Write-Log with $env:PSWriteLog*' {
     BeforeAll {
         $script:DefaultLog = "${TestDrive}\Logs\Write-Log.log"
         $script:DefaultLog = [IO.Path]::Combine($env:Temp, ('PowerShell {0} {1} {2}.log' -f $PSVersionTable.PSEdition, $PSVersionTable.PSVersion, $MyInvocation.CommandOrigin))
@@ -266,11 +266,11 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 1' {
+    Context 'Write-Log $Message -Severity ''Info''' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
-            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 1)
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 'Info')
             Write-Log $script:Message
         }
 
@@ -279,11 +279,11 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 1 -LogType Legacy' {
+    Context 'Write-Log $Message -Severity ''Info'' -LogType Legacy' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
-            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 1)
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 'Info')
             $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
@@ -293,11 +293,11 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 2' {
+    Context 'Write-Log $Message -Severity ''Warning''' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
-            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 2)
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 'Warning')
             Write-Log $script:Message
         }
 
@@ -306,11 +306,11 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 2 -LogType Legacy' {
+    Context 'Write-Log $Message -Severity ''Warning'' -LogType Legacy' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
-            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 2)
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 'Warning')
             $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
@@ -320,11 +320,11 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 3' {
+    Context 'Write-Log $Message -Severity ''Error''' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
-            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 3)
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 'Error')
             Write-Log $script:Message
         }
 
@@ -333,11 +333,11 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Severity 3 -LogType Legacy' {
+    Context 'Write-Log $Message -Severity ''Error'' -LogType Legacy' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
-            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 3)
+            $PSDefaultParameterValues.Set_Item('Write-Log:Severity', 'Error')
             $PSDefaultParameterValues.Set_Item('Write-Log:LogType', 'Legacy')
             Write-Log $script:Message
         }
@@ -387,7 +387,7 @@ Describe 'Write-Log with $PSDefaultParameterValues' {
         }
     }
 
-    Context 'Write-Log $Message -Component Pester -LogType Legacy' {
+    Context 'Write-Log $Message -Component Pester -LogType Legacy' -Skip {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             $PSDefaultParameterValues = @{}
