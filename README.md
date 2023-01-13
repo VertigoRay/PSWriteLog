@@ -16,7 +16,7 @@ Just configure the log location (or don't) and start logging with your standard 
   - [Debug with Write-Information](#debug-with-write-information)
   - [Debug PSWriteLog (or Your Application)](#debug-pswritelog-or-your-application)
 
-> ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
+> ℹ: For more details, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki)!
 
 # Quick Start
 
@@ -31,11 +31,11 @@ Write-Host 'Hello World!'
 **I love how clean and simple that is!**
 However, [the `#Requires` statement will terminate](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_requires?view=powershell-5.1#-modules-module-name--hashtable) if you don't have *PSWriteLog* installed.
 Since we're not introducing any new functions, *PSWriteLog* shouldn't be required to *just run the script*.
-For more explanation about his example, [check out the wiki](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-with-requires)!
+For more explanation about his example, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki/Examples#quick-start-with-requires)!
 
-To ensure there are no errors if you share your script with someone that doesn't have *PSWriteLog* installed, [you will want to use `Import-Module`](/VertigoRay/PSWriteLog/wiki/Examples#quick-start-w-import-module).
+To ensure there are no errors if you share your script with someone that doesn't have *PSWriteLog* installed, [you will want to use `Import-Module`](https://github.com/VertigoRay/PSWriteLog/wiki/Examples#quick-start-w-import-module).
 
-> ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
+> ℹ: For more details, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki)!
 
 # Description
 
@@ -53,7 +53,7 @@ $env:PSWriteLogFilePath = "${env:SystemRoot}\Logs\MyApp.log"
 $env:PSWriteLogType = 'Legacy'
 ```
 
-> ℹ: For more details, [check out the wiki](/VertigoRay/PSWriteLog/wiki)!
+> ℹ: For more details, [check out the wiki](https://github.com/VertigoRay/PSWriteLog/wiki)!
 
 # Notes
 
@@ -117,7 +117,6 @@ For me, when I'm working on *PSWriteLog* and I want to see just those messages, 
 
 ```powershell
 $InformationPreference = 'Continue'
-$PSDefaultParameterValues.Set_Item('Write-Log:InformationVariable', 'foo')
 
 Write-Host 'Testing a thing' -InformationVariable 'foo'
 $foo | ?{ $_.Tags -eq 'Write-Log' }
