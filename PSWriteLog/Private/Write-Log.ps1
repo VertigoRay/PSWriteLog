@@ -93,11 +93,11 @@ function global:Write-Log {
     )
 
     begin {
-        Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] BoundParameters: {0}' -f $($MyInvocation.BoundParameters | Out-String))
+        # Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] BoundParameters: {0}' -f $($MyInvocation.BoundParameters | Out-String))
 
         if ($env:PSWriteLogDisableLogging) {
             # If logging is not currently disabled, get out now!
-            Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] env:PSWriteLogDisableLogging: {0}' -f $env:PSWriteLogDisableLogging)
+            # Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] env:PSWriteLogDisableLogging: {0}' -f $env:PSWriteLogDisableLogging)
             return $null
         }
 
@@ -139,7 +139,7 @@ function global:Write-Log {
                 [string]
                 $lMessage
             )
-            Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Source (sb): ${Source}"
+            # Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Source (sb): ${Source}"
             $severityMap = @{ # Vaguely based on POSH stream numbers
                 Debug       = 5
                 Error       = 3
@@ -188,11 +188,11 @@ function global:Write-Log {
 
     process {
         if ($IncludeInvocationHeader) {
-            & $logLine -sMsg ("{1}`n{0}`n{1}" -f (Get-InvocationHeader),('#' * 40))
+            & $logLine -sMsg (Get-InvocationHeader)
         }
 
         foreach ($msg in $Message) {
-            Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] Source: {0}' -f $Source)
+            # Microsoft.PowerShell.Utility\Write-Debug ('[Write-Log] Source: {0}' -f $Source)
             try {
                 & $logLine -sMsg $msg
             } catch {
@@ -217,9 +217,9 @@ function global:Write-Log {
         if ($MaxLogFileSizeMB) {
             try {
                 [decimal] $LogFileSizeMB = $FilePath.Length/1MB
-                Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] LogFileSizeMB: $LogFileSizeMB / $MaxLogFileSizeMB"
+                # Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] LogFileSizeMB: $LogFileSizeMB / $MaxLogFileSizeMB"
                 if ($LogFileSizeMB -gt $MaxLogFileSizeMB) {
-                    Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Log File Needs to be archived ..."
+                    # Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Log File Needs to be archived ..."
                     # Change the file extension to "lo_"
                     [string] $archivedOutLogFile = [IO.Path]::ChangeExtension($FilePath.FullName, 'lo_')
 
@@ -235,11 +235,11 @@ function global:Write-Log {
                     # Start new log file and Log message about archiving the old log file
                     & $logLine -sMsg "Maximum log file size [${MaxLogFileSizeMB} MB] reached. Previous log file was renamed to: ${archivedOutLogFile}"
                 } else {
-                    Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Log File does not need to be archived."
+                    # Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Log File does not need to be archived."
                 }
             } catch {
                 # If renaming of file fails, script will continue writing to log file even if size goes over the max file size
-                Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Archive Error: ${_}"
+                # Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Archive Error: ${_}"
             }
         }
     }

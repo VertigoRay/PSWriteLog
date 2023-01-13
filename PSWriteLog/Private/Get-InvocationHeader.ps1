@@ -29,34 +29,42 @@ function Get-InvocationHeader {
     Start-Transcript -LiteralPath $tmp.FullName -IncludeInvocationHeader -Force | Out-Null
     Stop-Transcript | Out-Null
 
+    # Microsoft.PowerShell.Utility\Write-Debug ('[Get-InvocationHeader] Getting Header From: {0}' -f $tmp.FullName)
     $inHeader = $false
-    $header = Get-Content $tmp.FullName | ForEach-Object {
-        if ($_.StartsWith('*') -and $inHeader) {
+    [System.Collections.ArrayList] $header = @()
+    foreach ($line in (Get-Content $tmp.FullName)) {
+        if ($line.StartsWith('*') -and $inHeader) {
             # Reached end of header
+            # Microsoft.PowerShell.Utility\Write-Debug ('[Get-InvocationHeader] Reached end of header.')
             break
-        } elseif ($_.StartsWith('*')) {
+        } elseif ($line.StartsWith('*')) {
             # Reached start of header
+            # Microsoft.PowerShell.Utility\Write-Debug ('[Get-InvocationHeader] Reached start of header.')
             $inHeader = $true
         } else {
             # In header
-            switch -regex ($_.Trim()) {
+            # Microsoft.PowerShell.Utility\Write-Debug ('[Get-InvocationHeader] Handling: {0}' -f $line)
+            switch -regex ($line.Trim()) {
                 '^Windows PowerShell transcript start' {
-                    Write-Output ('PSWriteLog v{0} Invocation Header' -f (Get-Module 'PSWriteLog' | Select-Object -First 1).Version)
+                    $headerAdd = '# PSWriteLog v{0} Invocation Header' -f (Get-Module 'PSWriteLog' | Select-Object -First 1).Version
                     break
                 }
                 '^Start time\:\s+' {
-                    Write-Output ('Start time: {0}' -f (Get-Date -Format 'O'))
+                    $headerAdd = '# Start time: {0}' -f (Get-Date -Format 'O')
                     break
                 }
                 default {
-                    Write-Output $_
+                    $headerAdd = '# {0}' -f $line
                 }
             }
+            # Microsoft.PowerShell.Utility\Write-Debug ('[Get-InvocationHeader] Adding: {0}' -f $headerAdd)
+            $header.Add($headerAdd) | Out-Null
         }
     }
 
+    # Microsoft.PowerShell.Utility\Write-Debug ('[Get-InvocationHeader] Removing: {0}' -f $tmp.FullName)
     $tmp.FullName | Remove-Item -ErrorAction 'SilentlyContinue' -Force
     $env:PSWriteLogIncludeInvocationHeader = $null
 
-    return $header
+    return ("{1}`n{0}`n{1}" -f ($header.Trim() | Out-String).Trim(),('#' * 40))
 }
