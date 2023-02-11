@@ -239,7 +239,7 @@ function global:Write-Log {
                 }
             } catch {
                 # If renaming of file fails, script will continue writing to log file even if size goes over the max file size
-                # Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Archive Error: ${_}"
+                Microsoft.PowerShell.Utility\Write-Debug "[Write-Log] Archive Error: ${_}"
             }
         }
     }
