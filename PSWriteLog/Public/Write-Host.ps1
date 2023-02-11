@@ -1,5 +1,5 @@
 function global:Write-Host {
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=113426', RemotingCapability='None')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=113426', RemotingCapability='None')]
     param(
         [Parameter(Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
         [System.Object]

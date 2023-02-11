@@ -26,7 +26,7 @@
 	Resolve-Error -GetErrorInvocation:$false
 .NOTES
 .LINK
-	http://psappdeploytoolkit.com
+https://psappdeploytoolkit.com
 #>
 function Resolve-Error {
 	[CmdletBinding()]

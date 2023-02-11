@@ -1,5 +1,5 @@
 function global:Write-Information {
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkId=525909', RemotingCapability='None')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkId=525909', RemotingCapability='None')]
     param(
         [Parameter(Mandatory=$true, Position=0)]
         [Alias('Msg')]

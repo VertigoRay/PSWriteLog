@@ -1,5 +1,5 @@
 function global:Write-Progress {
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=113428', RemotingCapability='None')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=113428', RemotingCapability='None')]
     param(
         [Parameter(Mandatory=$true, Position=0)]
         [string]

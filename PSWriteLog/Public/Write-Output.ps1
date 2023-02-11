@@ -1,5 +1,5 @@
 function global:Write-Output {
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=113427', RemotingCapability='None')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=113427', RemotingCapability='None')]
     param(
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
         [AllowNull()]

@@ -1,5 +1,5 @@
 function global:Write-Warning {
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=113430', RemotingCapability='None')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=113430', RemotingCapability='None')]
     param(
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
         [Alias('Msg')]
