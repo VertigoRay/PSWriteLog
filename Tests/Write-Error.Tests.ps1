@@ -25,17 +25,24 @@ Describe 'Write-Error' {
             Write-Error $script:Message 2>&1
         }
 
-        <#
-            Tests skipped because they are not functioning on AppVeyor.
-            Should come back to this later ...
-            Ref: https://ci.appveyor.com/project/VertigoRay/pswritelog/builds/45866181
-        #>
-        It "Creates ${script:DefaultLog}" -Skip {
+        It "Creates ${script:DefaultLog}" {
+            if ($env:CI -and $env:APPVEYOR) {
+                # Tests skipped because they are not functioning on AppVeyor.
+                # Should come back to this later ...
+                # Ref: https://ci.appveyor.com/project/VertigoRay/pswritelog/builds/45866181
+                Set-ItResult -Skipped -Because 'Tests skipped because they are not functioning on AppVeyor.'
+            }
             # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Yellow'
             $script:DefaultLog | Should -Exist
         }
 
-        It "Writes '${script:Message}' to ${script:DefaultLog}" -Skip {
+        It "Writes '${script:Message}' to ${script:DefaultLog}" {
+            if ($env:CI -and $env:APPVEYOR) {
+                # Tests skipped because they are not functioning on AppVeyor.
+                # Should come back to this later ...
+                # Ref: https://ci.appveyor.com/project/VertigoRay/pswritelog/builds/45866181
+                Set-ItResult -Skipped -Because 'Tests skipped because they are not functioning on AppVeyor.'
+            }
             # Write-Host ('DefaultLog: {0}' -f $script:DefaultLog) -Fore 'Black' -Back 'Yellow'
             # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Cyan'
             $script:DefaultLog | Should -FileContentMatch ([regex]::Escape($script:Message))
