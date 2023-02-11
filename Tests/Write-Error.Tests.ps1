@@ -22,7 +22,9 @@ Describe 'Write-Error' {
         BeforeEach {
             Remove-Item $script:DefaultLog -Force -ErrorAction 'Ignore' | Out-Null
             # Write-Host ('Message: {0}' -f $script:Message) -Fore 'Black' -Back 'Magenta'
-            Write-Error $script:Message 2>&1
+            if (-not $env:CI -and -not $env:APPVEYOR) {
+                Write-Error $script:Message 2>&1
+            }
         }
 
         It "Creates ${script:DefaultLog}" {
